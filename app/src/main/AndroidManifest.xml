@@ -10,6 +10,9 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.DemoQplus">
         <activity
+            android:name=".QplusActivity"
+            android:exported="true" />
+        <activity
             android:name=".PermissionActivity"
             android:exported="true">
             <intent-filter>
