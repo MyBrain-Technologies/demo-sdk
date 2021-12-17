@@ -85,3 +85,5 @@ lint/outputs/
 lint/tmp/
 # lint/reports/
 /*/libs/
+
+app/.DS_Store
