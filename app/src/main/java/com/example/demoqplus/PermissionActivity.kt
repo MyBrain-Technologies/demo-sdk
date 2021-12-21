@@ -5,16 +5,14 @@ import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Bundle
-import android.util.Log
 import android.widget.Button
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
+import timber.log.Timber
 
 
 class PermissionActivity : AppCompatActivity() {
-
-    val ACTIVITY_TAG:String = "PermissionActivity"
 
     // Declare the permissions you want to grant
     // Don't forget to add permissions into your AndroidManifest
@@ -26,6 +24,11 @@ class PermissionActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_permission)
+
+        // declare timber
+        if(BuildConfig.DEBUG){
+            Timber.plant(Timber.DebugTree())
+        }
 
         val btnRequestPermission = findViewById<Button>(R.id.button_storage_permission)
         btnRequestPermission.setOnClickListener{
@@ -54,19 +57,19 @@ class PermissionActivity : AppCompatActivity() {
 
                     if (writePermission && readPermission){
                         // Granted, do something here...
-                        Log.d(ACTIVITY_TAG, "get permissions!")
+                        Timber.d("get permissions!")
                     } else {
                         // Denied, do something here...
-                        Log.d(ACTIVITY_TAG, "permissions denied!")
+                        Timber.d("permissions denied!")
 
                     }
                 } else {
                     // Denied, do something here...
-                    Log.d(ACTIVITY_TAG, "permissions denied!")
+                    Timber.d("permissions denied!")
                 }
             }
             else -> {
-                Log.d(ACTIVITY_TAG, "requestCode problem, please check its value")
+                Timber.d("requestCode problem, please check its value")
             }
         }
     }
@@ -75,12 +78,12 @@ class PermissionActivity : AppCompatActivity() {
         // Check if the permission has been granted
         if(isAllPermissionsGranted(this, *PERMISSIONS)){
             // All permissions are granted, do something...
-            Log.i(ACTIVITY_TAG, "W/R external permissions have been granted")
+            Timber.i( "W/R external permissions have been granted")
             Toast.makeText(this@PermissionActivity, "permissions have been already granted", Toast.LENGTH_SHORT).show()
         } else {
             // Ask user for authorization
-            Log.i(ACTIVITY_TAG, "W/R external permissions are not granted, ask for user")
-            ActivityCompat.requestPermissions(this, PERMISSIONS, PERMISSION_ALL);
+            Timber.i("W/R external permissions are not granted, ask for user")
+            ActivityCompat.requestPermissions(this, PERMISSIONS, PERMISSION_ALL)
         }
     }
     // Helper function to check is all of permissions granted
