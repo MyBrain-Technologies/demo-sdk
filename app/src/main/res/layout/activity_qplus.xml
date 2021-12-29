@@ -7,16 +7,17 @@
     tools:context=".QplusActivity">
 
 
-    <Button
-        android:id="@+id/button_connect_bluetooth"
+    <androidx.appcompat.widget.SwitchCompat
+        android:id="@+id/switch_connect_device"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Connect" />
+        android:text="Connect device"
+        android:checked="false"/>
 
     <Button
-        android:id="@+id/button_disconnect_bluetooth"
+        android:id="@+id/button_finish"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Disconnect" />
+        android:text="Finish" />
 
 </LinearLayout>
