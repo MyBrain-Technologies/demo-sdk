@@ -43,9 +43,6 @@ class QplusActivity : AppCompatActivity(), ConnectionStateListener<BaseError> {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_qplus)
 
-        if (BuildConfig.DEBUG){
-            Timber.plant(Timber.DebugTree())
-        }
 
         checkPermission()
 

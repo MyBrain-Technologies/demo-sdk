@@ -25,10 +25,6 @@ class PermissionActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_permission)
 
-        // declare timber
-        if(BuildConfig.DEBUG){
-            Timber.plant(Timber.DebugTree())
-        }
 
         val btnRequestPermission = findViewById<Button>(R.id.button_storage_permission)
         btnRequestPermission.setOnClickListener{
