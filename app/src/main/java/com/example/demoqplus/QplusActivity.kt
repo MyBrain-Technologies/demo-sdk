@@ -48,7 +48,9 @@ class QplusActivity : AppCompatActivity(), ConnectionStateListener<BaseError> {
 
         val btnFinish = findViewById<Button>(R.id.button_finish)
         btnFinish.setOnClickListener{
-            mbtClient.disconnectBluetooth()
+            if (isClientExisted) {
+                mbtClient.disconnectBluetooth()
+            }
             finish()
         }
 
