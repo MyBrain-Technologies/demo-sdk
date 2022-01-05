@@ -4,11 +4,12 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    tools:context=".QplusActivity">
+    tools:context=".QplusActivity"
+    tools:viewBindingIgnore="false">
 
 
     <androidx.appcompat.widget.SwitchCompat
-        android:id="@+id/switch_connect_device"
+        android:id="@+id/connect_device"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="Connect device"
@@ -21,7 +22,7 @@
         <Button
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:id="@+id/button_start_stop_stream"
+            android:id="@+id/button_stream"
             android:text="Start Stream"/>
 
         <Button
@@ -34,15 +35,18 @@
 
     <com.github.mikephil.charting.charts.LineChart
         android:layout_width="match_parent"
-        android:layout_height="300dp"
-        android:id="@+id/chart"/>
+        android:layout_height="200dp"
+        android:id="@+id/chart1"/>
+    <com.github.mikephil.charting.charts.LineChart
+        android:layout_width="match_parent"
+        android:layout_height="200dp"
+        android:id="@+id/chart2"/>
 
     <LinearLayout
         android:id="@+id/layout_qualities"
         android:orientation="horizontal"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        tools:viewBindingIgnore="true"
         android:weightSum="1">
 
         <TextView
