@@ -6,8 +6,10 @@ import android.content.Context
 import android.content.DialogInterface
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.content.res.ColorStateList
 import android.os.Bundle
 import android.widget.Button
+import android.widget.ImageView
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
@@ -15,6 +17,7 @@ import androidx.appcompat.content.res.AppCompatResources
 import androidx.appcompat.widget.SwitchCompat
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContentProviderCompat.requireContext
+import androidx.core.widget.ImageViewCompat
 import com.example.demoqplus.databinding.ActivityQplusBinding
 import com.github.mikephil.charting.charts.LineChart
 import config.ConnectionConfig
@@ -98,7 +101,6 @@ class QplusActivity : AppCompatActivity(), ConnectionStateListener<BaseError>,
             if (!IS_STREAMING){
                 // start stream if it isn't streamin
                 if (IS_DEVICE_CONNECTED) {
-                    streamStateChange.setBackgroundColor(getResources().getColor(R.color.red))
                     streamStateChange.setText("Stop Stream")
                     onStartStreamButtonClicked()
                     IS_STREAMING = true
@@ -108,7 +110,6 @@ class QplusActivity : AppCompatActivity(), ConnectionStateListener<BaseError>,
             } else {
                 // stop
                 mbtClient.stopStream()
-                streamStateChange.setBackgroundColor(getResources().getColor(R.color.white))
                 streamStateChange.setText("Start Stream")
                 IS_STREAMING = false
             }
@@ -272,6 +273,7 @@ class QplusActivity : AppCompatActivity(), ConnectionStateListener<BaseError>,
 
     override fun onNewPackets(mbteegPackets: MbtEEGPacket) {
         Timber.d("onNewPackets")
+        updateQualityButtons(mbteegPackets.qualities)
     }
 
     override fun onNewStreamState(streamState: StreamState) {}
@@ -283,5 +285,90 @@ class QplusActivity : AppCompatActivity(), ConnectionStateListener<BaseError>,
     override fun onNewDCOffsetMeasured(p0: DCOffsetEvent?) {
         //
     }
+
+    private fun updateQualityButtons(qualities: ArrayList<Float>?){
+        if (qualities != null && qualities.size == channelNb) {
+            var greenCount = 0
+            for (i in 0 until channelNb) {
+                updateQualityBuffer(
+                    qualities[i],
+                    lastQualities[i]
+                ) //add quality value at the end of channel quality buffer
+                val isGreen = areGoodSignals(lastQualities[i])
+
+                if (isGreen) {
+                    channelFlags[i] = true //rule 2: set flag to true
+                    greenCount++
+                    qualityButtons[i].background =
+                        AppCompatResources.getDrawable(this, R.color.green_signal)
+                } else {
+                    qualityButtons[i].background =
+                        AppCompatResources.getDrawable(this, R.color.gray)
+                }
+            }
+            /*
+            if (greenCount == 4) {
+                if (haProgress < qualityWindowLength) {
+                    haProgress++
+                }
+            } else {
+                haProgress = 0
+            }*/
+            //renderHeadsetAdjustmentProgress(haProgress)
+
+            if (isSignalGoodEnough()) {
+                Timber.d("quality is good")
+            } else {
+                Timber.d("quality is bad")
+            }
+        } else {
+            Timber.e("qualities size is not equal $channelNb!")
+        }
+    }
+
+    private fun isSignalGoodEnough(): Boolean {
+//        return haProgress == qualityWindowLength //rule 1
+        return channelFlags.count { it } == channelNb //rule 2 : all channels are passed to good at least one (separately)
+    }
+
+    private fun updateQualityBuffer(newValue: Float, list: LinkedList<Float>) {
+        if (!newValue.isNaN() && !newValue.isInfinite()) {
+            list.addLast(newValue)
+            if (list.size > qualityWindowLength) list.pollFirst()
+        }
+    }
+
+    private fun areGoodSignals(qualities: LinkedList<Float>): Boolean {
+        var count = 0
+        for (value in qualities) {
+            if (value < 0.25) {
+                return false
+            }
+            if (value == 1.0f) {
+                count++
+            }
+        }
+        return (count == qualities.size || count >= 3)
+    }
+
+    /*
+    private fun renderHeadsetAdjustmentProgress(level: Int) {
+        if (level > 6 || level < 0) {
+            Timber.e("invalid HA level")
+            return
+        }
+        for (i in 1..6) {
+            //1 to 6 is progress view positions, 0 is text "Low" position, 7 is text "High" position
+            val view = binding.layoutQualityProgress.getChildAt(i)
+            view?.safeCast<ImageView> {
+                val colorFilter = if (level >= i) {
+                    resources.getColor(R.color.colorAccent)
+                } else {
+                    resources.getColor(R.color.colorAccentInactive)
+                }
+                ImageViewCompat.setImageTintList(this, ColorStateList.valueOf(colorFilter))
+            }
+        }
+    }*/
 
 }
