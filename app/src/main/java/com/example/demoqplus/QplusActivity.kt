@@ -3,24 +3,18 @@ package com.example.demoqplus
 import android.Manifest
 import android.bluetooth.BluetoothAdapter
 import android.content.Context
-import android.content.DialogInterface
 import android.content.Intent
 import android.content.pm.PackageManager
-import android.content.res.ColorStateList
 import android.graphics.Color
 import android.os.Bundle
 import android.view.MotionEvent
 import android.widget.Button
-import android.widget.ImageView
 import android.widget.Toast
 import androidx.annotation.ColorInt
-import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.content.res.AppCompatResources
-import androidx.appcompat.widget.SwitchCompat
 import androidx.core.app.ActivityCompat
-import androidx.core.content.ContentProviderCompat.requireContext
-import androidx.core.widget.ImageViewCompat
+import androidx.lifecycle.ViewModelProvider
 import com.example.demoqplus.databinding.ActivityQplusBinding
 import com.github.mikephil.charting.charts.LineChart
 import com.github.mikephil.charting.components.Description
@@ -31,26 +25,17 @@ import com.github.mikephil.charting.data.LineData
 import com.github.mikephil.charting.data.LineDataSet
 import com.github.mikephil.charting.listener.ChartTouchListener
 import com.github.mikephil.charting.listener.OnChartGestureListener
-import config.ConnectionConfig
-import config.RecordConfig
-import config.StreamConfig
-import core.bluetooth.StreamState
-import core.device.event.DCOffsetEvent
-import core.device.event.SaturationEvent
-import core.device.event.indus5.RecordingSavedListener
-import core.device.model.MbtDevice
-import core.eeg.storage.MbtEEGPacket
-import engine.MbtClient
-import engine.clientevents.*
-import features.MbtDeviceType
+import com.mybraintech.sdk.MbtClient
+import com.mybraintech.sdk.MbtClientManager
+import com.mybraintech.sdk.core.model.EnumMBTDevice
 import timber.log.Timber
-import utils.MatrixUtils
 import java.util.*
 import kotlin.collections.ArrayList
 
 
-class QplusActivity : AppCompatActivity(), ConnectionStateListener<BaseError>,
-    EegListener<BaseError>, DeviceStatusListener<BaseError> {
+class QplusActivity : AppCompatActivity() {
+
+    lateinit var viewModel : QPlusViewModel
 
     // Declare bluetooth permissions
     var PERMISSIONS = arrayOf(
@@ -92,7 +77,6 @@ class QplusActivity : AppCompatActivity(), ConnectionStateListener<BaseError>,
     var isClientExisted: Boolean = false
     var IS_STREAMING: Boolean = false
     var IS_DEVICE_CONNECTED:Boolean = false
-    val KEY_DEVICE_TYPE = MbtDeviceType.MELOMIND_Q_PLUS
     val KEY_P300: Boolean = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -103,6 +87,8 @@ class QplusActivity : AppCompatActivity(), ConnectionStateListener<BaseError>,
         val view = binding.root
         setContentView(view)
 
+        viewModel = ViewModelProvider(this).get(QPlusViewModel::class.java)
+
         initActivity()
 
         checkPermission()
@@ -111,6 +97,9 @@ class QplusActivity : AppCompatActivity(), ConnectionStateListener<BaseError>,
     }
 
     private fun initActivity(){
+        viewModel.init(this, EnumMBTDevice.Q_PLUS)
+        //TODO: start here
+        viewModel.mbtClient?.getBleConnectionStatus() //....
 
         // connect device
         binding.connectDevice.setOnCheckedChangeListener { buttonView, isChecked ->
