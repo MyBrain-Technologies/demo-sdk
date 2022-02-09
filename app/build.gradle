@@ -42,12 +42,13 @@ dependencies {
     implementation 'com.google.android.material:material:1.4.0'
     implementation 'androidx.constraintlayout:constraintlayout:2.1.2'
 
-    //MBT SDK
-    implementation files('libs/lib_full_release_2.2.18.qplus.rc3.aar')
+    //MBT SDK by offline file
+//    implementation files('libs/lib_full_release_2.2.18.qplus.rc3.aar')
 
-    implementation("org.greenrobot:eventbus:3.3.1")
+    //MBT SDK by remote, please configure your user name and password in local.properties
+    implementation("com.mybraintech.android:sdk:3.0.0.rc3")
+
     implementation 'com.jakewharton.timber:timber:5.0.1'
-    implementation 'org.mod4j.org.apache.commons:lang:2.1.0'
 
     //line graph
     implementation 'com.github.PhilJay:MPAndroidChart:v3.0.1'
