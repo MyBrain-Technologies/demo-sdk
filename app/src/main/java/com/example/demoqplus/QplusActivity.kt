@@ -25,9 +25,9 @@ import com.github.mikephil.charting.data.LineData
 import com.github.mikephil.charting.data.LineDataSet
 import com.github.mikephil.charting.listener.ChartTouchListener
 import com.github.mikephil.charting.listener.OnChartGestureListener
-import com.mybraintech.sdk.MbtClient
-import com.mybraintech.sdk.MbtClientManager
-import com.mybraintech.sdk.core.model.EnumMBTDevice
+//import com.mybraintech.sdk.MbtClient
+//import com.mybraintech.sdk.MbtClientManager
+//import com.mybraintech.sdk.core.model.EnumMBTDevice
 import timber.log.Timber
 import java.util.*
 import kotlin.collections.ArrayList
@@ -48,7 +48,7 @@ class QplusActivity : AppCompatActivity() {
 
     // bluetooth
     val REQUEST_ENABLE_BT: Int = 1
-    lateinit var mbtClient: MbtClient
+    //lateinit var mbtClient: MbtClient
 
     // quality check
     private lateinit var binding: ActivityQplusBinding
@@ -61,11 +61,12 @@ class QplusActivity : AppCompatActivity() {
             this.add(false)
         }
     }
+    /**
     var recordingSavedListener: RecordingSavedListener = object : RecordingSavedListener {
         override fun onRecordingSaved(recordConfig: RecordConfig) {
             Timber.d("onRecordingSaved")
         }
-    }
+    }**/
 
     // line  chart
     private val TWO_SECONDS = 500f
@@ -89,12 +90,13 @@ class QplusActivity : AppCompatActivity() {
 
         viewModel = ViewModelProvider(this).get(QPlusViewModel::class.java)
 
-        initActivity()
+        //initActivity()
 
-        checkPermission()
+        //checkPermission()
 
         //var streamStateChange = findViewById<Button>(R.id.button_start_stop_stream)
     }
+    /**
 
     private fun initActivity(){
         viewModel.init(this, EnumMBTDevice.Q_PLUS)
@@ -671,7 +673,7 @@ class QplusActivity : AppCompatActivity() {
         } else {
             value
         }
-    }
+    }**/
 
 
 }
