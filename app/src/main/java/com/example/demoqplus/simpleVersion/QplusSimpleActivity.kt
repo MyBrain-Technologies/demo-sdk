@@ -22,6 +22,7 @@ import android.widget.Button
 import android.widget.Toast
 import androidx.appcompat.content.res.AppCompatResources
 import androidx.core.content.FileProvider
+import com.example.demoqplus.databinding.ActivityQplusBinding
 import com.mybraintech.sdk.MbtClient
 import com.mybraintech.sdk.MbtClientManager
 import com.mybraintech.sdk.core.listener.*
@@ -56,11 +57,18 @@ class QplusSimpleActivity : AppCompatActivity(), ConnectionListener {
     //EEG signals
     var eegCount = 0
 
-    // line  chart
-    private val TWO_SECONDS = 500f
-    private var counter: Long = 0
-    private var bufferedChartData = ArrayList<ArrayList<Float>>()
-    private var bufferedChartData2 = ArrayList<ArrayList<Float>>()
+    // quality check
+    var lastQualities = ArrayList<LinkedList<Float>>()
+    var qualityWindowLength = 6
+    var channelNb = 4
+    var qualityButtons = ArrayList<Button>()
+    var channelFlags = ArrayList<Boolean>().apply {
+        for (i in 1..channelNb) {
+            this.add(false)
+        }
+    }
+
+    var test: Boolean = false
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -184,6 +192,17 @@ class QplusSimpleActivity : AppCompatActivity(), ConnectionListener {
             }
 
         }
+
+        // quality checkers
+        // add buttons to list
+        qualityButtons.add(binding.P3)
+        qualityButtons.add(binding.P4)
+        qualityButtons.add(binding.AF3)
+        qualityButtons.add(binding.AF4)
+        for (i in 1..channelNb) {
+            lastQualities.add(LinkedList())
+        }
+
     }
 
     private fun onBtnStartEEGClicked(isStatusEnabled: Boolean) {
@@ -198,8 +217,8 @@ class QplusSimpleActivity : AppCompatActivity(), ConnectionListener {
                     if (mbtClient.isRecordingEnabled()){
                         Timber.d("is recording")
                     }
-                    //Timber.d("onEegPacket :$mbtEEGPacket2")
-
+                    Timber.d("${mbtEEGPacket2.qualities}")
+                    updateQualityButtons(mbtEEGPacket2.qualities)
                 }
                 override fun onEegError(error: Throwable) {
                     Timber.e(error)
@@ -276,6 +295,64 @@ class QplusSimpleActivity : AppCompatActivity(), ConnectionListener {
 
     private fun String.isPrivateMemory(): Boolean {
         return this.contains(this@QplusSimpleActivity.packageName)
+    }
+
+    /**
+     * functions for quality checkers d
+     * **/
+
+    private fun updateQualityButtons(qualities: ArrayList<Float>?){
+        if (qualities != null && qualities.size == channelNb) {
+            var greenCount = 0
+            for (i in 0 until channelNb) {
+                updateQualityBuffer(
+                    qualities[i],
+                    lastQualities[i]
+                ) //add quality value at the end of channel quality buffer
+                val isGreen = areGoodSignals(lastQualities[i])
+
+                if (isGreen) {
+                    channelFlags[i] = true //rule 2: set flag to true
+                    greenCount++
+                    qualityButtons[i].background = AppCompatResources.getDrawable(applicationContext, R.color.green_signal)
+                } else {
+                    qualityButtons[i].background = AppCompatResources.getDrawable(applicationContext, R.color.red)
+                }
+            }
+
+            if (isSignalGoodEnough()) {
+                Timber.d("quality is good")
+            } else {
+                Timber.d("quality is bad")
+            }
+        } else {
+            Timber.e("qualities size is not equal $channelNb!")
+        }
+    }
+
+    private fun updateQualityBuffer(newValue: Float, list: LinkedList<Float>) {
+        if (!newValue.isNaN() && !newValue.isInfinite()) {
+            list.addLast(newValue)
+            if (list.size > qualityWindowLength) list.pollFirst()
+        }
+    }
+
+    private fun areGoodSignals(qualities: LinkedList<Float>): Boolean {
+        var count = 0
+        for (value in qualities) {
+            if (value < 0.25) {
+                return false
+            }
+            if (value == 1.0f) {
+                count++
+            }
+        }
+        return (count == qualities.size || count >= 3)
+    }
+
+    private fun isSignalGoodEnough(): Boolean {
+        //return haProgress == qualityWindowLength //rule 1
+        return channelFlags.count { it } == channelNb //rule 2 : all channels are passed to good at least one (separately)
     }
 
     /**
@@ -412,6 +489,9 @@ class QplusSimpleActivity : AppCompatActivity(), ConnectionListener {
         binding.simpleConnectstateDevice.background = AppCompatResources.getDrawable(this, R.color.red)
         //binding.simpleIsRecording.background = AppCompatResources.getDrawable(this, R.color.red)
         setBatteryLevel()
+        // disconnect reset quality checkers
+        qualityButtons[0].background = AppCompatResources.getDrawable(applicationContext, R.color.black)
+
     }
 
     override fun onConnectionError(error: Throwable) {
