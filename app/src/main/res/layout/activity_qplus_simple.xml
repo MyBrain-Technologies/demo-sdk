@@ -8,51 +8,6 @@
     tools:viewBindingIgnore="false"
     tools:context=".simpleVersion.QplusSimpleActivity">
 
-    <Button
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:id="@+id/simple_activate_bluetooth"
-        android:text="activate bluetooth"/>
-
-    <LinearLayout
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal">
-        <Button
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:id="@+id/simple_scan_devices"
-            android:text="scan devices"/>
-
-        <Button
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:id="@+id/simple_stopscan_devices"
-            android:text="stop scan"/>
-    </LinearLayout>
-
-    <LinearLayout
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal">
-        <Button
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:id="@+id/simple_connect_device"
-            android:text="connect"/>
-
-        <Button
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:id="@+id/simple_disconnect_device"
-            android:text="disconnect"/>
-
-        <androidx.appcompat.widget.AppCompatButton
-            android:layout_width="50dp"
-            android:layout_height="25dp"
-            android:id="@+id/simple_connectstate_device"
-            android:background="@color/red"/>
-    </LinearLayout>
 
     <LinearLayout
         android:layout_width="wrap_content"
@@ -73,7 +28,6 @@
             android:id="@+id/simple_battery_level"
             android:text="50%"
             />
-
         <Button
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -168,6 +122,28 @@
         android:layout_width="match_parent"
         android:layout_height="200dp"
         android:id="@+id/chart1"/>
+
+    <Button
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/simple_scan_devices"
+        android:backgroundTint="@color/bluetooth_disable"
+        android:drawableLeft="@android:drawable/stat_sys_data_bluetooth"
+        android:text="scan"/>
+
+    <Button
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/simple_connect_device"
+        android:backgroundTint="@color/bluetooth_enable"
+        android:text="connect"/>
+
+    <Button
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/simple_finish"
+        android:backgroundTint="@color/red"
+        android:text="finnish"/>
 
 
 </LinearLayout>

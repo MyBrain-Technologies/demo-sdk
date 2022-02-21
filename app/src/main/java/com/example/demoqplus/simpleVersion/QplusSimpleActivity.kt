@@ -106,18 +106,17 @@ class QplusSimpleActivity : AppCompatActivity(), ConnectionListener {
     }
 
     private fun initUI(){
-        binding.simpleActivateBluetooth.setOnClickListener {
-            activateBluetooth()
-        }
         // functions for scanning devices
         binding.simpleScanDevices.setOnClickListener {
             when {
                 isScanning -> {
-                    Toast.makeText(this, "Is scanning now...", Toast.LENGTH_SHORT).show()
+                    mbtClient.stopScan()
+                    isScanning = false
                 }
                 bluetoothStateReceiver.isBluetoothOn -> {
                     Timber.i("is ready for scanning devices...")
                     isScanning = true
+
                     mbtClient.startScan(object : ScanResultListener {
                         override fun onMbtDevices(mbtDevices: List<MbtDevice>) {
                             Timber.i("onMbtDevices size = ${mbtDevices.size}")
@@ -142,6 +141,7 @@ class QplusSimpleActivity : AppCompatActivity(), ConnectionListener {
                         }
 
                         override fun onScanError(error: Throwable) {
+                            binding.simpleScanDevices.background = AppCompatResources.getDrawable(applicationContext, R.color.bluetooth_disable)
                             Timber.e(error)
                             //addResultText("onScanError")
                         }
@@ -154,22 +154,12 @@ class QplusSimpleActivity : AppCompatActivity(), ConnectionListener {
             }
         }
 
-        binding.simpleStopscanDevices.setOnClickListener {
-            if (isScanning) {
-                mbtClient.stopScan()
-                isScanning = false
-            }
-        }
-
         // functions for connecting device
         binding.simpleConnectDevice.setOnClickListener {
             if (!isMbtConnected && mbtDevice != null){
                 // device is not connected...
                 mbtClient.connect(mbtDevice!!, this)
             }
-        }
-
-        binding.simpleDisconnectDevice.setOnClickListener {
             if (isMbtConnected)
                 mbtClient.disconnect()
         }
@@ -204,6 +194,10 @@ class QplusSimpleActivity : AppCompatActivity(), ConnectionListener {
                 mbtClient.stopEEGRecording()
             }
 
+        }
+
+        binding.simpleFinish.setOnClickListener {
+            finish()
         }
 
         // quality checkers
@@ -474,8 +468,8 @@ class QplusSimpleActivity : AppCompatActivity(), ConnectionListener {
         bufferedData: ArrayList<Float>) {
         try {
             val data = chart.data
-            Timber.d("size is ${data.dataSets?.size}")
             if ((data != null) && (data.dataSets?.size == 1)) {
+                Timber.d("here is me")
                 data.dataSets[0].clear()
                 for (i in bufferedData.indices) {
                     data.addEntry(Entry(data.dataSets[0].entryCount.toFloat(),
@@ -599,15 +593,15 @@ class QplusSimpleActivity : AppCompatActivity(), ConnectionListener {
      * onConnectionError() / onDeviceDisconnected() / onDeviceReady() / onServiceDiscovered()
      * **/
     override fun onBonded(device: BluetoothDevice) {
-        TODO("Not yet implemented")
+
     }
 
     override fun onBondingFailed(device: BluetoothDevice) {
-        TODO("Not yet implemented")
+
     }
 
     override fun onBondingRequired(device: BluetoothDevice) {
-        TODO("Not yet implemented")
+
     }
 
     // connections
@@ -619,7 +613,7 @@ class QplusSimpleActivity : AppCompatActivity(), ConnectionListener {
         // = onConnectionSuccess
         isMbtConnected = true
         Timber.d("onDeviceReady")
-        binding.simpleConnectstateDevice.background = AppCompatResources.getDrawable(this, R.color.green)
+        binding.simpleConnectDevice.text = "Disconnect"
         setBatteryLevel()
 
         // get device info
@@ -639,11 +633,10 @@ class QplusSimpleActivity : AppCompatActivity(), ConnectionListener {
     override fun onDeviceDisconnected() {
         isMbtConnected = false
         Timber.d("onDeviceDisconnected")
-        binding.simpleConnectstateDevice.background = AppCompatResources.getDrawable(this, R.color.red)
+        binding.simpleConnectDevice.text = "Connect"
         //binding.simpleIsRecording.background = AppCompatResources.getDrawable(this, R.color.red)
         setBatteryLevel()
         // disconnect reset quality checkers
-        qualityButtons[0].background = AppCompatResources.getDrawable(applicationContext, R.color.black)
 
     }
 
@@ -655,6 +648,7 @@ class QplusSimpleActivity : AppCompatActivity(), ConnectionListener {
     override fun onDestroy() {
         super.onDestroy()
         unregisterReceiver(bluetoothStateReceiver)
+        mbtClient.disconnect()
     }
 
 }
