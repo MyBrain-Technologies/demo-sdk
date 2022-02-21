@@ -20,9 +20,16 @@ import android.net.Uri
 import android.os.Environment
 import android.widget.Button
 import android.widget.Toast
+import androidx.annotation.ColorInt
 import androidx.appcompat.content.res.AppCompatResources
 import androidx.core.content.FileProvider
-import com.example.demoqplus.databinding.ActivityQplusBinding
+import com.github.mikephil.charting.charts.LineChart
+import com.github.mikephil.charting.components.Description
+import com.github.mikephil.charting.components.XAxis
+import com.github.mikephil.charting.components.YAxis
+import com.github.mikephil.charting.data.Entry
+import com.github.mikephil.charting.data.LineData
+import com.github.mikephil.charting.data.LineDataSet
 import com.mybraintech.sdk.MbtClient
 import com.mybraintech.sdk.MbtClientManager
 import com.mybraintech.sdk.core.listener.*
@@ -68,17 +75,22 @@ class QplusSimpleActivity : AppCompatActivity(), ConnectionListener {
         }
     }
 
-    var test: Boolean = false
+    // line  chart
+    private val TWO_SECONDS = 500f
+    private var counter: Int = 0
+    private var bufferedChartData = ArrayList<Float>()
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_qplus_simple)
 
+        // Initialize viewbinding
         binding = ActivityQplusSimpleBinding.inflate(layoutInflater)
         val view = binding.root
         setContentView(view)
 
+        // initialize some parameters
         isPermissionsGranted = isAllPermissionsGranted(this, *PERMISSIONS)
         bluetoothStateReceiver = BluetoothStateReceiver(BluetoothAdapter.getDefaultAdapter().isEnabled)
         val filter = IntentFilter(BluetoothAdapter.ACTION_STATE_CHANGED)
@@ -90,6 +102,7 @@ class QplusSimpleActivity : AppCompatActivity(), ConnectionListener {
         checkConnection()
         setBatteryLevel()
         initUI()
+        initChart()
     }
 
     private fun initUI(){
@@ -217,7 +230,24 @@ class QplusSimpleActivity : AppCompatActivity(), ConnectionListener {
                     if (mbtClient.isRecordingEnabled()){
                         Timber.d("is recording")
                     }
-                    Timber.d("${mbtEEGPacket2.qualities}")
+
+                    // get data from channel 1
+                    val p3Data = getP3(mbtEEGPacket2.channelsData)
+
+                    //Updating chart
+                    binding.chart1.post {
+                        if (counter < 2) {
+                            counter++
+                            addEntry(binding.chart1, p3Data)
+                        } else {
+                            updateEntry(
+                                binding.chart1,
+                                p3Data,
+                                bufferedChartData,
+                            )
+                            bufferedChartData = p3Data
+                        }
+                    }
                     updateQualityButtons(mbtEEGPacket2.qualities)
                 }
                 override fun onEegError(error: Throwable) {
@@ -298,7 +328,7 @@ class QplusSimpleActivity : AppCompatActivity(), ConnectionListener {
     }
 
     /**
-     * functions for quality checkers d
+     * quality checkers
      * **/
 
     private fun updateQualityButtons(qualities: ArrayList<Float>?){
@@ -353,6 +383,129 @@ class QplusSimpleActivity : AppCompatActivity(), ConnectionListener {
     private fun isSignalGoodEnough(): Boolean {
         //return haProgress == qualityWindowLength //rule 1
         return channelFlags.count { it } == channelNb //rule 2 : all channels are passed to good at least one (separately)
+    }
+
+    /**
+     * line chart
+     * Draw data of P3 only
+     * */
+
+    private fun initChart(){
+        // arraylist size depends on the sample frequency, how many data in a second
+        val channelDataSet1 = LineDataSet(ArrayList(250), "Channel1")
+        configureEegLineDataSet(channelDataSet1, "P3", Color.CYAN)
+
+        // setting chart
+        val lineData = LineData()
+        lineData.removeDataSet(0)
+        lineData.addDataSet(channelDataSet1)
+        binding.chart1.data = lineData
+        setupLineChart(binding.chart1)
+    }
+
+    private fun setupLineChart(lineChart: LineChart) {
+        // configuration of chart
+        val xAxis = lineChart.xAxis
+        xAxis.position = XAxis.XAxisPosition.TOP_INSIDE
+        xAxis.textSize = 10f
+        xAxis.textColor = Color.WHITE
+        xAxis.setDrawAxisLine(false)
+        xAxis.setDrawGridLines(true)
+        xAxis.textColor = Color.rgb(255, 192, 56)
+        xAxis.setCenterAxisLabels(true)
+        xAxis.granularity = 1f // one hour
+        lineChart.isDoubleTapToZoomEnabled = false
+        lineChart.isAutoScaleMinMaxEnabled = true
+        lineChart.axisLeft.setDrawGridLines(false)
+        lineChart.axisLeft.setDrawLabels(true)
+        lineChart.axisRight.setDrawLabels(true)
+        lineChart.axisRight.setDrawGridLines(false)
+        lineChart.axisRight.axisMinimum = -0.05f
+        lineChart.axisRight.axisMaximum = 1f
+        lineChart.xAxis.setDrawGridLines(false)
+        lineChart.description = Description().apply {
+            text = "sample"
+            textSize = 8f //dp unit
+        }
+    }
+
+    private fun configureEegLineDataSet(
+        lineDataSet: LineDataSet,
+        label: String,
+        @ColorInt color: Int) {
+        lineDataSet.label = label
+        lineDataSet.setDrawValues(false)
+        lineDataSet.disableDashedLine()
+        lineDataSet.setDrawCircleHole(false)
+        lineDataSet.setDrawCircles(false)
+        lineDataSet.color = color
+        lineDataSet.axisDependency = YAxis.AxisDependency.LEFT
+    }
+
+    // Update graph data
+    private fun getP3(data: ArrayList<ArrayList<Float>>): ArrayList<Float> {
+        return data[0]
+    }
+
+    private fun addEntry(
+        chart: LineChart,
+        channelData: ArrayList<Float>) {
+        val data = chart.data
+        if (data != null) {
+            for (i in channelData.indices) {
+                data.addEntry(
+                    Entry(
+                        data.dataSets[0].entryCount.toFloat(),
+                        secureFloat(channelData[i] * 1000000)), 0)
+            }
+            data.notifyDataChanged()
+            // let the chart know it's data has changed
+            chart.notifyDataSetChanged()
+            chart.setVisibleXRangeMaximum(TWO_SECONDS)
+            chart.invalidate()
+        } else {
+            throw IllegalStateException("Graph not correctly initialized")
+        }
+    }
+
+    private fun updateEntry(
+        chart: LineChart,
+        channelData: ArrayList<Float>,
+        bufferedData: ArrayList<Float>) {
+        try {
+            val data = chart.data
+            Timber.d("size is ${data.dataSets?.size}")
+            if ((data != null) && (data.dataSets?.size == 1)) {
+                data.dataSets[0].clear()
+                for (i in bufferedData.indices) {
+                    data.addEntry(Entry(data.dataSets[0].entryCount.toFloat(),
+                        secureFloat(bufferedData[i]) * 1000000), 0)
+                }
+
+                for (i in channelData.indices) {
+                    data.addEntry(
+                        Entry(data.dataSets[0].entryCount.toFloat(),
+                            secureFloat(channelData[i]) * 1000000), 0)
+                }
+                data.notifyDataChanged()
+                // let the chart know it's data has changed
+                chart.notifyDataSetChanged()
+                chart.invalidate()
+            } else {
+                Timber.e("data is null / data is not completed")
+                Timber.e("Graph not correctly initialized")
+            }
+        } catch (e: Exception) {
+            Timber.e(e)
+        }
+    }
+
+    private fun secureFloat(value: Float): Float {
+        return if (value.isNaN()) {
+            0f
+        } else {
+            value
+        }
     }
 
     /**
