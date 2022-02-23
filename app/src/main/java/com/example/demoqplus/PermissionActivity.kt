@@ -9,6 +9,7 @@ import android.widget.Button
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
+import com.example.demoqplus.simpleVersion.QplusSimpleActivity
 import timber.log.Timber
 
 
@@ -35,7 +36,7 @@ class PermissionActivity : AppCompatActivity() {
         val btnNextActivity = findViewById<Button>(R.id.button_go_qplus)
         btnNextActivity.setOnClickListener{
             // Go to next activity
-            val intent = Intent(this@PermissionActivity, QplusActivity::class.java)
+            val intent = Intent(this@PermissionActivity, QplusSimpleActivity::class.java)
             startActivity(intent)
         }
     }

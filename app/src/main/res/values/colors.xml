@@ -8,6 +8,10 @@
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
     <color name="red">#DC143C</color>
+    <color name="green">#0CFE0C</color>
+
+    <color name="bluetooth_disable">#adbbd6</color>
+    <color name="bluetooth_enable">#6796f9</color>
 
     <color name="colorAccent">#35B1C5</color>
     <color name="colorAccentInactive">#DAEBFC</color>
