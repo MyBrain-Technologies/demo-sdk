@@ -8,64 +8,42 @@
     tools:viewBindingIgnore="false"
     tools:context=".simpleVersion.QplusSimpleActivity">
 
+    <Button
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/simple_scan_devices"
+        android:backgroundTint="@color/button_scan"
+        android:text="scan"/>
+
+
+    <Button
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/simple_connect_device"
+        android:backgroundTint="@color/bluetooth_enable"
+        android:text="connect"/>
+
 
     <LinearLayout
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:orientation="horizontal">
-
-        <ProgressBar
-            android:layout_width="200dp"
-            android:layout_height="30dp"
-            android:max="100"
-            android:progress="50"
-            android:id="@+id/simple_battery"
-            style="?android:attr/progressBarStyleHorizontal"
-            />
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:id="@+id/simple_battery_level"
-            android:text="50%"
-            />
         <Button
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:id="@+id/simple_get_battery"
             android:text="battery"/>
-    </LinearLayout>
-
-    <LinearLayout
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal">
         <Button
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:id="@+id/simple_start_receive"
             android:text = "start EEG"/>
-        <Button
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:id="@+id/simple_stop_receive"
-            android:text = "stop EEG"/>
-    </LinearLayout>
 
-    <LinearLayout
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal">
         <Button
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:id="@+id/simple_start_record"
-            android:text="record"/>
-
-        <Button
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:id="@+id/simple_stop_record"
-            android:text="stop"/>
+            android:text="start record"/>
     </LinearLayout>
 
     <LinearLayout
@@ -126,17 +104,8 @@
     <Button
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:id="@+id/simple_scan_devices"
-        android:backgroundTint="@color/bluetooth_disable"
-        android:drawableLeft="@android:drawable/stat_sys_data_bluetooth"
-        android:text="scan"/>
-
-    <Button
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:id="@+id/simple_connect_device"
-        android:backgroundTint="@color/bluetooth_enable"
-        android:text="connect"/>
+        android:id="@+id/simple_switch_EEG"
+        android:text="P3/P4"/>
 
     <Button
         android:layout_width="match_parent"
