@@ -7,98 +7,12 @@
     tools:context=".QplusActivity"
     tools:viewBindingIgnore="false">
 
-
-    <androidx.appcompat.widget.SwitchCompat
-        android:id="@+id/connect_device"
+    <androidx.fragment.app.FragmentContainerView
+        android:id="@+id/fragment_container_view"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="Connect device"
-        android:checked="false"/>
+        android:layout_height="match_parent" />
 
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal">
-        <Button
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:id="@+id/button_stream"
-            android:text="Start Stream"/>
 
-        <Button
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:id="@+id/button_start_stop_record"
-            android:enabled="false"
-            android:text="Start Record"/>
-    </LinearLayout>
 
-    <com.github.mikephil.charting.charts.LineChart
-        android:layout_width="match_parent"
-        android:layout_height="200dp"
-        android:id="@+id/chart1"/>
-    <com.github.mikephil.charting.charts.LineChart
-        android:layout_width="match_parent"
-        android:layout_height="200dp"
-        android:id="@+id/chart2"/>
-
-    <LinearLayout
-        android:id="@+id/layout_qualities"
-        android:orientation="horizontal"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:weightSum="1">
-
-        <TextView
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="0.2"
-            android:text="Qualities"
-            android:textAppearance="@style/TextAppearance.AppCompat.Body1" />
-
-        <androidx.appcompat.widget.AppCompatButton
-            android:id="@+id/P3"
-            style="@style/Widget.AppCompat.Button.Small"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="4dp"
-            android:layout_weight="0.2"
-            android:backgroundTint="@null"
-            android:text="P3" />
-
-        <androidx.appcompat.widget.AppCompatButton
-            android:id="@+id/P4"
-            style="@style/Widget.AppCompat.Button.Small"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="4dp"
-            android:layout_weight="0.2"
-            android:text="P4" />
-
-        <androidx.appcompat.widget.AppCompatButton
-            android:id="@+id/AF3"
-            style="@style/Widget.AppCompat.Button.Small"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="4dp"
-            android:layout_weight="0.2"
-            android:text="AF3" />
-
-        <androidx.appcompat.widget.AppCompatButton
-            android:id="@+id/AF4"
-            style="@style/Widget.AppCompat.Button.Small"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="4dp"
-            android:layout_weight="0.2"
-            android:text="AF4" />
-
-    </LinearLayout>
-
-    <Button
-        android:id="@+id/button_finish"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="Finish" />
 
 </LinearLayout>
