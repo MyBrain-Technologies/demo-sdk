@@ -44,6 +44,7 @@ dependencies {
 
     //MBT SDK by offline file
 //    implementation files('libs/lib_full_release_2.2.18.qplus.rc3.aar')
+    implementation("androidx.fragment:fragment-ktx:1.4.1")
 
     //MBT SDK by remote, please configure your user name and password in local.properties
     implementation("com.mybraintech.android:sdk:3.0.0.rc3")

@@ -78,7 +78,9 @@ class QplusSimpleActivity : AppCompatActivity(), ConnectionListener {
     // line  chart
     private val TWO_SECONDS = 500f
     private var counter: Int = 0
-    private var bufferedChartData = ArrayList<Float>()
+    private var isP3P4: Boolean = true
+    private var bufferedChartData = ArrayList<ArrayList<Float>>()
+    // private var bufferedChartData2 = ArrayList<ArrayList<Float>>()
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -102,7 +104,7 @@ class QplusSimpleActivity : AppCompatActivity(), ConnectionListener {
         checkConnection()
         setBatteryLevel()
         initUI()
-        initChart()
+        initializeGraph()
     }
 
     private fun initUI(){
@@ -110,13 +112,14 @@ class QplusSimpleActivity : AppCompatActivity(), ConnectionListener {
         binding.simpleScanDevices.setOnClickListener {
             when {
                 isScanning -> {
+                    binding.simpleScanDevices.text = "Scan"
                     mbtClient.stopScan()
                     isScanning = false
                 }
                 bluetoothStateReceiver.isBluetoothOn -> {
                     Timber.i("is ready for scanning devices...")
+                    binding.simpleScanDevices.text = "Stop Scan"
                     isScanning = true
-
                     mbtClient.startScan(object : ScanResultListener {
                         override fun onMbtDevices(mbtDevices: List<MbtDevice>) {
                             Timber.i("onMbtDevices size = ${mbtDevices.size}")
@@ -124,11 +127,13 @@ class QplusSimpleActivity : AppCompatActivity(), ConnectionListener {
                                 Timber.i("device ${device.bluetoothDevice.name}")
                             }
                             mbtClient.stopScan()
+                            binding.simpleScanDevices.text = "Scan"
                             mbtDevice = mbtDevices[0]
+                            Toast.makeText(applicationContext,
+                                "device: ${mbtDevice!!.bluetoothDevice.name} has been found! ",
+                                Toast.LENGTH_LONG).show()
 
                             isScanning = false
-                            //addResultText("found devices ${mbtDevice?.bluetoothDevice?.name}")
-                            //addResultText("stop scan")
                         }
 
                         override fun onOtherDevices(otherDevices: List<BluetoothDevice>) {
@@ -141,7 +146,7 @@ class QplusSimpleActivity : AppCompatActivity(), ConnectionListener {
                         }
 
                         override fun onScanError(error: Throwable) {
-                            binding.simpleScanDevices.background = AppCompatResources.getDrawable(applicationContext, R.color.bluetooth_disable)
+                            binding.simpleScanDevices.text = "Scan"
                             Timber.e(error)
                             //addResultText("onScanError")
                         }
@@ -159,9 +164,12 @@ class QplusSimpleActivity : AppCompatActivity(), ConnectionListener {
             if (!isMbtConnected && mbtDevice != null){
                 // device is not connected...
                 mbtClient.connect(mbtDevice!!, this)
+                binding.simpleConnectDevice.text = "Disconnect"
             }
-            if (isMbtConnected)
+            if (isMbtConnected){
                 mbtClient.disconnect()
+                binding.simpleConnectDevice.text = "Connect"
+            }
         }
 
         // get power level
@@ -171,13 +179,13 @@ class QplusSimpleActivity : AppCompatActivity(), ConnectionListener {
 
         // start receive EEG
         binding.simpleStartReceive.setOnClickListener {
-            if (isMbtConnected && !mbtClient.isEEGEnabled())
+            if (isMbtConnected && !mbtClient.isEEGEnabled()){
                 onBtnStartEEGClicked(false)
-        }
-
-        binding.simpleStopReceive.setOnClickListener {
-            if (isMbtConnected && mbtClient.isEEGEnabled()){
+                binding.simpleStartReceive.text = "Stop EEG"
+            }
+            else {
                 mbtClient.stopEEG()
+                binding.simpleStartReceive.text = "Start EEG"
                 eegCount = 0
             }
         }
@@ -186,14 +194,23 @@ class QplusSimpleActivity : AppCompatActivity(), ConnectionListener {
         binding.simpleStartRecord.setOnClickListener {
             if (mbtClient.isEEGEnabled() && !mbtClient.isRecordingEnabled()){
                 onBtnStartRecordingClicked()
+                binding.simpleStartRecord.text = "Stop Record"
+            } else {
+                mbtClient.stopEEGRecording()
+                binding.simpleStartRecord.text = "Start Record"
             }
         }
 
-        binding.simpleStopRecord.setOnClickListener {
-            if(isMbtConnected && mbtClient.isRecordingEnabled()){
-                mbtClient.stopEEGRecording()
-            }
+        binding.simpleSwitchEEG.setOnClickListener{
+            if (isP3P4){
+                binding.simpleSwitchEEG.text = "AF3/AF4"
 
+            } else {
+                binding.simpleSwitchEEG.text = "P3/P4"
+
+            }
+            isP3P4 = !isP3P4
+            initializeGraph()
         }
 
         binding.simpleFinish.setOnClickListener {
@@ -225,23 +242,28 @@ class QplusSimpleActivity : AppCompatActivity(), ConnectionListener {
                         Timber.d("is recording")
                     }
 
-                    // get data from channel 1
-                    val p3Data = getP3(mbtEEGPacket2.channelsData)
+                    val p3p4Data = getP3P4(mbtEEGPacket2.channelsData)
+                    val af3af4Data = getAF3AF4(mbtEEGPacket2.channelsData)
 
+                    val getData = if (isP3P4){
+                        getP3P4(mbtEEGPacket2.channelsData)
+                    } else {
+                        getAF3AF4(mbtEEGPacket2.channelsData)
+                    }
                     //Updating chart
                     binding.chart1.post {
                         if (counter < 2) {
                             counter++
-                            addEntry(binding.chart1, p3Data)
+                            addEntry(binding.chart1, getData, mbtEEGPacket2.statusData)
                         } else {
-                            updateEntry(
-                                binding.chart1,
-                                p3Data,
-                                bufferedChartData,
-                            )
-                            bufferedChartData = p3Data
+                            updateEntry(binding.chart1, getData, bufferedChartData, mbtEEGPacket2.statusData)
                         }
+                        bufferedChartData = getData
+                        bufferedChartData.add(0, mbtEEGPacket2.statusData)
                     }
+                        // bufferedChartData2 = af3af4Data
+                        // bufferedChartData2.add(0, mbtEEGPacket2.statusData)
+
                     updateQualityButtons(mbtEEGPacket2.qualities)
                 }
                 override fun onEegError(error: Throwable) {
@@ -383,22 +405,78 @@ class QplusSimpleActivity : AppCompatActivity(), ConnectionListener {
      * line chart
      * Draw data of P3 only
      * */
-
-    private fun initChart(){
-        // arraylist size depends on the sample frequency, how many data in a second
-        val channelDataSet1 = LineDataSet(ArrayList(250), "Channel1")
-        configureEegLineDataSet(channelDataSet1, "P3", Color.CYAN)
-
+    // functions for graph
+    private fun initializeGraph() {
+        counter = 0
+        //status is common
+        val statusDataSet1 = LineDataSet(ArrayList(250), "Status")
+        configureStatusLineDataSet(statusDataSet1) //use for chart 1, do not reuse for chart 2
+        val statusDataSet2 = LineDataSet(ArrayList(250), "Status")
+        configureStatusLineDataSet(statusDataSet2) //use for chart 2
+        val dataSetChan2 = LineDataSet(ArrayList(250), "Channel 1")
+        configureEegLineDataSet(dataSetChan2, "P3", Color.RED)
+        val dataSetChan3 = LineDataSet(ArrayList(250), "Channel 2")
+        configureEegLineDataSet(dataSetChan3, "P4", Color.BLUE)
+        //for indus5
+        val dataSetChan4 = LineDataSet(ArrayList(250), "Channel 3")
+        configureEegLineDataSet(dataSetChan4, "AF3", Color.MAGENTA)
+        val dataSetChan5 = LineDataSet(ArrayList(250), "Channel 4")
+        configureEegLineDataSet(dataSetChan5, "AF4", Color.CYAN)
         // setting chart
-        val lineData = LineData()
-        lineData.removeDataSet(0)
-        lineData.addDataSet(channelDataSet1)
-        binding.chart1.data = lineData
+        if (isP3P4){
+            binding.chart1.data = getLineData(statusDataSet1, dataSetChan2, dataSetChan3)
+        } else {
+            binding.chart1.data = getLineData(statusDataSet2, dataSetChan4, dataSetChan5)
+        }
+        // val lineData1 = getLineData(statusDataSet1, dataSetChan2, dataSetChan3)
+        // val lineData2 = getLineData(statusDataSet2, dataSetChan4, dataSetChan5)
+
         setupLineChart(binding.chart1)
     }
 
+    private fun configureStatusLineDataSet(lineDataSet: LineDataSet) {
+        lineDataSet.label = "STYM"
+        lineDataSet.setDrawValues(false)
+        lineDataSet.disableDashedLine()
+        lineDataSet.setDrawCircleHole(false)
+        lineDataSet.setDrawCircles(false)
+        lineDataSet.color = Color.GREEN
+        lineDataSet.setDrawFilled(true)
+        lineDataSet.fillColor = Color.GREEN
+        lineDataSet.fillAlpha = 40
+        lineDataSet.axisDependency = YAxis.AxisDependency.RIGHT
+    }
+
+    private fun configureEegLineDataSet(
+        lineDataSet: LineDataSet,
+        label: String,
+        @ColorInt color: Int
+    ) {
+        lineDataSet.label = label
+        lineDataSet.setDrawValues(false)
+        lineDataSet.disableDashedLine()
+        lineDataSet.setDrawCircleHole(false)
+        lineDataSet.setDrawCircles(false)
+        lineDataSet.color = color
+        lineDataSet.axisDependency = YAxis.AxisDependency.LEFT
+    }
+
+    private fun getLineData(
+        dataSet1: LineDataSet,
+        dataSet2: LineDataSet,
+        dataSet3: LineDataSet
+    ): LineData {
+        val lineData = LineData()
+        lineData.removeDataSet(2)
+        lineData.removeDataSet(1)
+        lineData.removeDataSet(0)
+        lineData.addDataSet(dataSet1)
+        lineData.addDataSet(dataSet2)
+        lineData.addDataSet(dataSet3)
+        return lineData
+    }
+
     private fun setupLineChart(lineChart: LineChart) {
-        // configuration of chart
         val xAxis = lineChart.xAxis
         xAxis.position = XAxis.XAxisPosition.TOP_INSIDE
         xAxis.textSize = 10f
@@ -421,36 +499,58 @@ class QplusSimpleActivity : AppCompatActivity(), ConnectionListener {
             text = "sample"
             textSize = 8f //dp unit
         }
-    }
-
-    private fun configureEegLineDataSet(
-        lineDataSet: LineDataSet,
-        label: String,
-        @ColorInt color: Int) {
-        lineDataSet.label = label
-        lineDataSet.setDrawValues(false)
-        lineDataSet.disableDashedLine()
-        lineDataSet.setDrawCircleHole(false)
-        lineDataSet.setDrawCircles(false)
-        lineDataSet.color = color
-        lineDataSet.axisDependency = YAxis.AxisDependency.LEFT
+        lineChart.invalidate()
     }
 
     // Update graph data
-    private fun getP3(data: ArrayList<ArrayList<Float>>): ArrayList<Float> {
-        return data[0]
+    private fun getP3P4(data: ArrayList<ArrayList<Float>>): ArrayList<ArrayList<Float>> {
+        val result = ArrayList<ArrayList<Float>>()
+        result.add(data[0])
+        result.add(data[1])
+        return result
     }
+    private fun getAF3AF4(data: ArrayList<ArrayList<Float>>): ArrayList<java.util.ArrayList<Float>> {
+        val result = ArrayList<ArrayList<Float>>()
+        result.add(data[2])
+        result.add(data[3])
+        return result
+    }
+
 
     private fun addEntry(
         chart: LineChart,
-        channelData: ArrayList<Float>) {
+        channelData: ArrayList<ArrayList<Float>>,
+        statusData: ArrayList<Float>?
+    ) {
         val data = chart.data
+//        data.dataSets[0].clear()
+//        data.dataSets[1].clear()
+//        data.dataSets[2].clear()
         if (data != null) {
-            for (i in channelData.indices) {
-                data.addEntry(
-                    Entry(
-                        data.dataSets[0].entryCount.toFloat(),
-                        secureFloat(channelData[i] * 1000000)), 0)
+            check(channelData.size >= 2) { "Incorrect matrix size, one or more channel are missing" }
+            if (channelData[0].size == channelData[1].size) {
+                for (i in channelData[0].indices) {
+                    if (statusData != null) data.addEntry(
+                        Entry(
+                            data.dataSets[0].entryCount.toFloat(),
+                            secureFloat(statusData[i])
+                        ), 0
+                    )
+                    data.addEntry(
+                        Entry(
+                            data.dataSets[1].entryCount.toFloat(),
+                            secureFloat(channelData[0][i] * 1000000)
+                        ), 1
+                    )
+                    data.addEntry(
+                        Entry(
+                            data.dataSets[2].entryCount.toFloat(),
+                            secureFloat(channelData[1][i] * 1000000)
+                        ), 2
+                    )
+                }
+            } else {
+                throw IllegalStateException("Channels do not have the same amount of data")
             }
             data.notifyDataChanged()
             // let the chart know it's data has changed
@@ -461,25 +561,66 @@ class QplusSimpleActivity : AppCompatActivity(), ConnectionListener {
             throw IllegalStateException("Graph not correctly initialized")
         }
     }
-
     private fun updateEntry(
         chart: LineChart,
-        channelData: ArrayList<Float>,
-        bufferedData: ArrayList<Float>) {
+        channelData: ArrayList<ArrayList<Float>>,
+        bufferedData: ArrayList<ArrayList<Float>>,
+        statusData: ArrayList<Float>
+    ) {
         try {
             val data = chart.data
-            if ((data != null) && (data.dataSets?.size == 1)) {
-                Timber.d("here is me")
+            if ((data != null) && (data.dataSets?.size == 3)) {
                 data.dataSets[0].clear()
-                for (i in bufferedData.indices) {
-                    data.addEntry(Entry(data.dataSets[0].entryCount.toFloat(),
-                        secureFloat(bufferedData[i]) * 1000000), 0)
+                data.dataSets[1].clear()
+                data.dataSets[2].clear()
+                check(channelData.size >= 2) { "Incorrect matrix size, one or more channel are missing" }
+                if (bufferedData[1].size == bufferedData[2].size) {
+                    for (i in bufferedData[1].indices) {
+                        if (statusData != null) data.addEntry(
+                            Entry(
+                                data.dataSets[0].entryCount.toFloat(),
+                                secureFloat(bufferedData[0][i])
+                            ), 0
+                        )
+                        data.addEntry(
+                            Entry(
+                                data.dataSets[1].entryCount.toFloat(),
+                                secureFloat(bufferedData[1][i]) * 1000000
+                            ), 1
+                        )
+                        data.addEntry(
+                            Entry(
+                                data.dataSets[2].entryCount.toFloat(),
+                                secureFloat(bufferedData[2][i]) * 1000000
+                            ), 2
+                        )
+                    }
+                } else {
+                    throw IllegalStateException("Channels do not have the same amount of data")
                 }
-
-                for (i in channelData.indices) {
-                    data.addEntry(
-                        Entry(data.dataSets[0].entryCount.toFloat(),
-                            secureFloat(channelData[i]) * 1000000), 0)
+                if (channelData[0].size == channelData[1].size) {
+                    for (i in channelData[0].indices) {
+                        if (statusData != null) data.addEntry(
+                            Entry(
+                                data.dataSets[0].entryCount.toFloat(),
+                                secureFloat(statusData[i])
+                            ), 0
+                        )
+                        data.addEntry(
+                            Entry(
+                                data.dataSets[1].entryCount.toFloat(),
+                                secureFloat(channelData[0][i]) * 1000000
+                            ), 1
+                        )
+                        data.addEntry(
+                            Entry(
+                                data.dataSets[2].entryCount.toFloat(),
+                                secureFloat(channelData[1][i]) * 1000000
+                            ), 2
+                        )
+                    }
+                } else {
+                    throw IllegalStateException("Channels do not have the same amount of data")
                 }
                 data.notifyDataChanged()
                 // let the chart know it's data has changed
@@ -513,17 +654,14 @@ class QplusSimpleActivity : AppCompatActivity(), ConnectionListener {
                     Timber.d("level = $float")
                     // set process and text
                     var level: Int = float.toInt()
-                    binding.simpleBattery.progress = level
-                    binding.simpleBatteryLevel.text = level.toString()+" %"
+                    var info = "Device info: battery level: $level %"
+                    Toast.makeText(applicationContext, info, Toast.LENGTH_SHORT).show()
                 }
 
                 override fun onBatteryLevelError(error: Throwable) {
                     TODO("Not yet implemented")
                 }
             })
-        } else {
-            binding.simpleBattery.progress = 0
-            binding.simpleBatteryLevel.text = "0 %"
         }
     }
 
@@ -634,6 +772,8 @@ class QplusSimpleActivity : AppCompatActivity(), ConnectionListener {
         isMbtConnected = false
         Timber.d("onDeviceDisconnected")
         binding.simpleConnectDevice.text = "Connect"
+        binding.simpleStartReceive.text = "Start EEG"
+        binding.simpleStartRecord.text = "Stop Record"
         //binding.simpleIsRecording.background = AppCompatResources.getDrawable(this, R.color.red)
         setBatteryLevel()
         // disconnect reset quality checkers
@@ -642,6 +782,7 @@ class QplusSimpleActivity : AppCompatActivity(), ConnectionListener {
 
     override fun onConnectionError(error: Throwable) {
         Timber.e("device connection error!")
+        binding.simpleConnectDevice.text = "Connect"
     }
 
     // activity
