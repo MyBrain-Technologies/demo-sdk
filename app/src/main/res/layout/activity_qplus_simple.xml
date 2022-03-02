@@ -6,7 +6,7 @@
     android:layout_height="match_parent"
     android:orientation="vertical"
     tools:viewBindingIgnore="false"
-    tools:context=".simpleVersion.QplusSimpleActivity">
+    tools:context=".QplusSimpleActivity">
 
     <Button
         android:layout_width="match_parent"

@@ -1,4 +1,4 @@
-package com.example.demoqplus.simpleVersion
+package com.example.demoqplus
 
 import android.Manifest
 import android.annotation.SuppressLint
@@ -11,7 +11,6 @@ import android.content.pm.PackageManager
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import androidx.core.app.ActivityCompat
-import com.example.demoqplus.R
 import com.example.demoqplus.databinding.ActivityQplusSimpleBinding
 import timber.log.Timber
 import android.content.IntentFilter
@@ -94,7 +93,8 @@ class QplusSimpleActivity : AppCompatActivity(), ConnectionListener {
 
         // initialize some parameters
         isPermissionsGranted = isAllPermissionsGranted(this, *PERMISSIONS)
-        bluetoothStateReceiver = BluetoothStateReceiver(BluetoothAdapter.getDefaultAdapter().isEnabled)
+        bluetoothStateReceiver =
+            BluetoothStateReceiver(BluetoothAdapter.getDefaultAdapter().isEnabled)
         val filter = IntentFilter(BluetoothAdapter.ACTION_STATE_CHANGED)
         registerReceiver(bluetoothStateReceiver, filter)
 

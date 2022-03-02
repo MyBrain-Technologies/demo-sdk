@@ -9,7 +9,6 @@ import android.widget.Button
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
-import com.example.demoqplus.simpleVersion.QplusSimpleActivity
 import timber.log.Timber
 
 
