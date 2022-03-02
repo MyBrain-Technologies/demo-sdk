@@ -1,4 +1,4 @@
-package com.example.demoqplus.simpleVersion
+package com.example.demoqplus
 
 import androidx.core.content.FileProvider
 

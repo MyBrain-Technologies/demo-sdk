@@ -1,55 +1,59 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    tools:viewBindingIgnore="false"
-    tools:context=".simpleVersion.QplusSimpleActivity">
+    tools:context=".QplusSimpleActivity"
+    tools:viewBindingIgnore="false">
 
     <Button
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
         android:id="@+id/simple_scan_devices"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
         android:backgroundTint="@color/button_scan"
-        android:text="scan"/>
+        android:text="scan" />
 
 
     <Button
+        android:id="@+id/simple_connect_device"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:id="@+id/simple_connect_device"
         android:backgroundTint="@color/bluetooth_enable"
-        android:text="connect"/>
+        android:text="connect" />
 
 
     <LinearLayout
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:orientation="horizontal">
-        <Button
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:id="@+id/simple_get_battery"
-            android:text="battery"/>
-        <Button
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:id="@+id/simple_start_receive"
-            android:text = "start EEG"/>
 
         <Button
+            android:id="@+id/simple_get_battery"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_margin="4dp"
+            android:text="battery" />
+
+        <Button
+            android:id="@+id/simple_start_receive"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_margin="4dp"
+            android:text="start EEG" />
+
+        <Button
             android:id="@+id/simple_start_record"
-            android:text="start record"/>
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_margin="4dp"
+            android:text="start record" />
     </LinearLayout>
 
     <LinearLayout
-        android:orientation="horizontal"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:orientation="horizontal"
         android:weightSum="1">
 
         <TextView
@@ -97,22 +101,22 @@
     </LinearLayout>
 
     <com.github.mikephil.charting.charts.LineChart
+        android:id="@+id/chart1"
         android:layout_width="match_parent"
-        android:layout_height="200dp"
-        android:id="@+id/chart1"/>
+        android:layout_height="200dp" />
 
     <Button
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
         android:id="@+id/simple_switch_EEG"
-        android:text="P3/P4"/>
-
-    <Button
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:text="P3/P4" />
+
+    <Button
         android:id="@+id/simple_finish"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
         android:backgroundTint="@color/red"
-        android:text="finnish"/>
+        android:text="finnish" />
 
 
 </LinearLayout>

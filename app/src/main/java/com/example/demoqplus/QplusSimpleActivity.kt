@@ -1,4 +1,4 @@
-package com.example.demoqplus.simpleVersion
+package com.example.demoqplus
 
 import android.Manifest
 import android.annotation.SuppressLint
@@ -7,22 +7,20 @@ import android.bluetooth.BluetoothDevice
 import android.content.ClipData
 import android.content.Context
 import android.content.Intent
-import android.content.pm.PackageManager
-import androidx.appcompat.app.AppCompatActivity
-import android.os.Bundle
-import androidx.core.app.ActivityCompat
-import com.example.demoqplus.R
-import com.example.demoqplus.databinding.ActivityQplusSimpleBinding
-import timber.log.Timber
 import android.content.IntentFilter
+import android.content.pm.PackageManager
 import android.graphics.Color
 import android.net.Uri
+import android.os.Bundle
 import android.os.Environment
 import android.widget.Button
 import android.widget.Toast
 import androidx.annotation.ColorInt
+import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.content.res.AppCompatResources
+import androidx.core.app.ActivityCompat
 import androidx.core.content.FileProvider
+import com.example.demoqplus.databinding.ActivityQplusSimpleBinding
 import com.github.mikephil.charting.charts.LineChart
 import com.github.mikephil.charting.components.Description
 import com.github.mikephil.charting.components.XAxis
@@ -35,10 +33,10 @@ import com.mybraintech.sdk.MbtClientManager
 import com.mybraintech.sdk.core.listener.*
 import com.mybraintech.sdk.core.model.*
 import com.mybraintech.sdk.util.toJson
+import timber.log.Timber
 import java.io.File
 import java.text.SimpleDateFormat
 import java.util.*
-import kotlin.collections.ArrayList
 
 
 class QplusSimpleActivity : AppCompatActivity(), ConnectionListener {
@@ -49,7 +47,8 @@ class QplusSimpleActivity : AppCompatActivity(), ConnectionListener {
     private var isPermissionsGranted: Boolean = false
     var PERMISSIONS = arrayOf(
         Manifest.permission.ACCESS_COARSE_LOCATION,
-        Manifest.permission.ACCESS_FINE_LOCATION)
+        Manifest.permission.ACCESS_FINE_LOCATION
+    )
 
     // bluetooth state
     private var isScanning: Boolean = false
@@ -94,7 +93,8 @@ class QplusSimpleActivity : AppCompatActivity(), ConnectionListener {
 
         // initialize some parameters
         isPermissionsGranted = isAllPermissionsGranted(this, *PERMISSIONS)
-        bluetoothStateReceiver = BluetoothStateReceiver(BluetoothAdapter.getDefaultAdapter().isEnabled)
+        bluetoothStateReceiver =
+            BluetoothStateReceiver(BluetoothAdapter.getDefaultAdapter().isEnabled)
         val filter = IntentFilter(BluetoothAdapter.ACTION_STATE_CHANGED)
         registerReceiver(bluetoothStateReceiver, filter)
 
@@ -107,7 +107,7 @@ class QplusSimpleActivity : AppCompatActivity(), ConnectionListener {
         initializeGraph()
     }
 
-    private fun initUI(){
+    private fun initUI() {
         // functions for scanning devices
         binding.simpleScanDevices.setOnClickListener {
             when {
@@ -129,9 +129,11 @@ class QplusSimpleActivity : AppCompatActivity(), ConnectionListener {
                             mbtClient.stopScan()
                             binding.simpleScanDevices.text = "Scan"
                             mbtDevice = mbtDevices[0]
-                            Toast.makeText(applicationContext,
+                            Toast.makeText(
+                                applicationContext,
                                 "device: ${mbtDevice!!.bluetoothDevice.name} has been found! ",
-                                Toast.LENGTH_LONG).show()
+                                Toast.LENGTH_LONG
+                            ).show()
 
                             isScanning = false
                         }
@@ -153,7 +155,8 @@ class QplusSimpleActivity : AppCompatActivity(), ConnectionListener {
                     })
                 }
                 else -> {
-                    Toast.makeText(this, "bluetooth is off, please turn it on.", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this, "bluetooth is off, please turn it on.", Toast.LENGTH_SHORT)
+                        .show()
                     activateBluetooth()
                 }
             }
@@ -161,12 +164,12 @@ class QplusSimpleActivity : AppCompatActivity(), ConnectionListener {
 
         // functions for connecting device
         binding.simpleConnectDevice.setOnClickListener {
-            if (!isMbtConnected && mbtDevice != null){
+            if (!isMbtConnected && mbtDevice != null) {
                 // device is not connected...
                 mbtClient.connect(mbtDevice!!, this)
                 binding.simpleConnectDevice.text = "Disconnect"
             }
-            if (isMbtConnected){
+            if (isMbtConnected) {
                 mbtClient.disconnect()
                 binding.simpleConnectDevice.text = "Connect"
             }
@@ -179,11 +182,10 @@ class QplusSimpleActivity : AppCompatActivity(), ConnectionListener {
 
         // start receive EEG
         binding.simpleStartReceive.setOnClickListener {
-            if (isMbtConnected && !mbtClient.isEEGEnabled()){
+            if (isMbtConnected && !mbtClient.isEEGEnabled()) {
                 onBtnStartEEGClicked(false)
                 binding.simpleStartReceive.text = "Stop EEG"
-            }
-            else {
+            } else {
                 mbtClient.stopEEG()
                 binding.simpleStartReceive.text = "Start EEG"
                 eegCount = 0
@@ -192,7 +194,7 @@ class QplusSimpleActivity : AppCompatActivity(), ConnectionListener {
 
         // record EEG
         binding.simpleStartRecord.setOnClickListener {
-            if (mbtClient.isEEGEnabled() && !mbtClient.isRecordingEnabled()){
+            if (mbtClient.isEEGEnabled() && !mbtClient.isRecordingEnabled()) {
                 onBtnStartRecordingClicked()
                 binding.simpleStartRecord.text = "Stop Record"
             } else {
@@ -201,8 +203,8 @@ class QplusSimpleActivity : AppCompatActivity(), ConnectionListener {
             }
         }
 
-        binding.simpleSwitchEEG.setOnClickListener{
-            if (isP3P4){
+        binding.simpleSwitchEEG.setOnClickListener {
+            if (isP3P4) {
                 binding.simpleSwitchEEG.text = "AF3/AF4"
 
             } else {
@@ -238,14 +240,14 @@ class QplusSimpleActivity : AppCompatActivity(), ConnectionListener {
             ),
             object : EEGListener {
                 override fun onEegPacket(mbtEEGPacket2: MbtEEGPacket2) {
-                    if (mbtClient.isRecordingEnabled()){
+                    if (mbtClient.isRecordingEnabled()) {
                         Timber.d("is recording")
                     }
 
                     val p3p4Data = getP3P4(mbtEEGPacket2.channelsData)
                     val af3af4Data = getAF3AF4(mbtEEGPacket2.channelsData)
 
-                    val getData = if (isP3P4){
+                    val getData = if (isP3P4) {
                         getP3P4(mbtEEGPacket2.channelsData)
                     } else {
                         getAF3AF4(mbtEEGPacket2.channelsData)
@@ -256,16 +258,22 @@ class QplusSimpleActivity : AppCompatActivity(), ConnectionListener {
                             counter++
                             addEntry(binding.chart1, getData, mbtEEGPacket2.statusData)
                         } else {
-                            updateEntry(binding.chart1, getData, bufferedChartData, mbtEEGPacket2.statusData)
+                            updateEntry(
+                                binding.chart1,
+                                getData,
+                                bufferedChartData,
+                                mbtEEGPacket2.statusData
+                            )
                         }
                         bufferedChartData = getData
                         bufferedChartData.add(0, mbtEEGPacket2.statusData)
                     }
-                        // bufferedChartData2 = af3af4Data
-                        // bufferedChartData2.add(0, mbtEEGPacket2.statusData)
+                    // bufferedChartData2 = af3af4Data
+                    // bufferedChartData2.add(0, mbtEEGPacket2.statusData)
 
                     updateQualityButtons(mbtEEGPacket2.qualities)
                 }
+
                 override fun onEegError(error: Throwable) {
                     Timber.e(error)
                 }
@@ -301,21 +309,19 @@ class QplusSimpleActivity : AppCompatActivity(), ConnectionListener {
                     val path = outputFile.path
                     Timber.i("output file path = $path")
 
-                    if (path.isPrivateMemory()) {
-                        val contentUri: Uri = FileProvider.getUriForFile(
-                            this@QplusSimpleActivity,
-                            "com.example.demoqplus",
-                            outputFile
-                        )
-                        Intent(Intent.ACTION_SEND).apply {
-                            type = "text/json"
-                            data = contentUri
-                            putExtra(Intent.EXTRA_STREAM, contentUri);
-                            clipData = ClipData.newRawUri("", contentUri)
-                            flags = Intent.FLAG_GRANT_READ_URI_PERMISSION
-                        }.also {
-                            startActivity(it)
-                        }
+                    val contentUri: Uri = FileProvider.getUriForFile(
+                        this@QplusSimpleActivity,
+                        "com.example.demoqplus",
+                        outputFile
+                    )
+                    Intent(Intent.ACTION_SEND).apply {
+                        type = "text/json"
+                        data = contentUri
+                        putExtra(Intent.EXTRA_STREAM, contentUri);
+                        clipData = ClipData.newRawUri("", contentUri)
+                        flags = Intent.FLAG_GRANT_READ_URI_PERMISSION
+                    }.also {
+                        startActivity(it)
                     }
                 }
 
@@ -331,7 +337,7 @@ class QplusSimpleActivity : AppCompatActivity(), ConnectionListener {
     fun getTimeNow(): String {
         try {
             val date = Date()
-            val tf = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss");
+            val tf = SimpleDateFormat("yyyy-MM-dd'T'HH'h'mm'm'ss");
             return tf.format(date)
         } catch (e: Exception) {
             Timber.e(e)
@@ -347,7 +353,7 @@ class QplusSimpleActivity : AppCompatActivity(), ConnectionListener {
      * quality checkers
      * **/
 
-    private fun updateQualityButtons(qualities: ArrayList<Float>?){
+    private fun updateQualityButtons(qualities: ArrayList<Float>?) {
         if (qualities != null && qualities.size == channelNb) {
             var greenCount = 0
             for (i in 0 until channelNb) {
@@ -360,9 +366,11 @@ class QplusSimpleActivity : AppCompatActivity(), ConnectionListener {
                 if (isGreen) {
                     channelFlags[i] = true //rule 2: set flag to true
                     greenCount++
-                    qualityButtons[i].background = AppCompatResources.getDrawable(applicationContext, R.color.green_signal)
+                    qualityButtons[i].background =
+                        AppCompatResources.getDrawable(applicationContext, R.color.green_signal)
                 } else {
-                    qualityButtons[i].background = AppCompatResources.getDrawable(applicationContext, R.color.red)
+                    qualityButtons[i].background =
+                        AppCompatResources.getDrawable(applicationContext, R.color.red)
                 }
             }
 
@@ -423,7 +431,7 @@ class QplusSimpleActivity : AppCompatActivity(), ConnectionListener {
         val dataSetChan5 = LineDataSet(ArrayList(250), "Channel 4")
         configureEegLineDataSet(dataSetChan5, "AF4", Color.CYAN)
         // setting chart
-        if (isP3P4){
+        if (isP3P4) {
             binding.chart1.data = getLineData(statusDataSet1, dataSetChan2, dataSetChan3)
         } else {
             binding.chart1.data = getLineData(statusDataSet2, dataSetChan4, dataSetChan5)
@@ -509,6 +517,7 @@ class QplusSimpleActivity : AppCompatActivity(), ConnectionListener {
         result.add(data[1])
         return result
     }
+
     private fun getAF3AF4(data: ArrayList<ArrayList<Float>>): ArrayList<java.util.ArrayList<Float>> {
         val result = ArrayList<ArrayList<Float>>()
         result.add(data[2])
@@ -561,6 +570,7 @@ class QplusSimpleActivity : AppCompatActivity(), ConnectionListener {
             throw IllegalStateException("Graph not correctly initialized")
         }
     }
+
     private fun updateEntry(
         chart: LineChart,
         channelData: ArrayList<ArrayList<Float>>,
@@ -647,9 +657,9 @@ class QplusSimpleActivity : AppCompatActivity(), ConnectionListener {
      * these functions are implemented for BatteryLevelListener
      * onBatteryLevel() / onBatteryLevelError()
      * **/
-    private fun setBatteryLevel(){
-        if (isMbtConnected){
-            mbtClient.getBatteryLevel(object: BatteryLevelListener{
+    private fun setBatteryLevel() {
+        if (isMbtConnected) {
+            mbtClient.getBatteryLevel(object : BatteryLevelListener {
                 override fun onBatteryLevel(float: Float) {
                     Timber.d("level = $float")
                     // set process and text
@@ -666,7 +676,7 @@ class QplusSimpleActivity : AppCompatActivity(), ConnectionListener {
     }
 
     // is device connected?
-    private fun checkConnection(){
+    private fun checkConnection() {
         // this variable contains 2 useful things: isConnectionEstablished and mbtDevice
         // mbtdevice = android.bluetooth.BluetoothDevice
         val bleConnectionStatus = mbtClient.getBleConnectionStatus()
@@ -674,10 +684,10 @@ class QplusSimpleActivity : AppCompatActivity(), ConnectionListener {
     }
 
     // activate bluetooth
-    private fun activateBluetooth(){
-        if (isPermissionsGranted){
+    private fun activateBluetooth() {
+        if (isPermissionsGranted) {
             // ask for activation of bluetooth
-            if (!bluetoothStateReceiver.isBluetoothOn){
+            if (!bluetoothStateReceiver.isBluetoothOn) {
                 Timber.i("Bluetooth isn't enable, ask user for turning it on...")
                 val enableBtIntent = Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE)
                 startActivityForResult(enableBtIntent, 1)
@@ -689,23 +699,25 @@ class QplusSimpleActivity : AppCompatActivity(), ConnectionListener {
     }
 
     // check all permissions
-    private fun isAllPermissionsGranted(context: Context, vararg permissions: String): Boolean = permissions.all{
-        ActivityCompat.checkSelfPermission(context, it) == PackageManager.PERMISSION_GRANTED
-    }
+    private fun isAllPermissionsGranted(context: Context, vararg permissions: String): Boolean =
+        permissions.all {
+            ActivityCompat.checkSelfPermission(context, it) == PackageManager.PERMISSION_GRANTED
+        }
 
     // fetch request permissions results
     override fun onRequestPermissionsResult(
         requestCode: Int,
         permissions: Array<out String>,
-        grantResults: IntArray) {
+        grantResults: IntArray
+    ) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-        when(requestCode){
-            1 ->{
-                if(grantResults.isNotEmpty()){
+        when (requestCode) {
+            1 -> {
+                if (grantResults.isNotEmpty()) {
                     var accessCoarse: Boolean = grantResults[0] == PackageManager.PERMISSION_GRANTED
                     var accessFine: Boolean = grantResults[1] == PackageManager.PERMISSION_GRANTED
-                    isPermissionsGranted = accessCoarse&&accessFine
-                    if (isPermissionsGranted){
+                    isPermissionsGranted = accessCoarse && accessFine
+                    if (isPermissionsGranted) {
                         Timber.i("All permissions are granted by user")
                         // Do something here...
                         activateBluetooth()
@@ -718,7 +730,7 @@ class QplusSimpleActivity : AppCompatActivity(), ConnectionListener {
                     isPermissionsGranted = false
                 }
             }
-            else ->{
+            else -> {
                 Timber.d("requestCode problem, please check its value")
             }
         }

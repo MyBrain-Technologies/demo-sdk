@@ -11,11 +11,8 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.DemoQplus">
         <activity
-            android:name=".simpleVersion.QplusSimpleActivity"
+            android:name=".QplusSimpleActivity"
             android:exported="false" />
-        <activity
-            android:name=".QplusActivity"
-            android:exported="true" />
         <activity
             android:name=".PermissionActivity"
             android:exported="true">
@@ -27,7 +24,7 @@
         </activity>
 
         <provider
-            android:name=".simpleVersion.EEGFileProvider"
+            android:name=".EEGFileProvider"
             android:authorities="com.example.demoqplus"
             android:exported="false"
             android:grantUriPermissions="true">
