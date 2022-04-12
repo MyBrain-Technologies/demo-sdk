@@ -234,7 +234,6 @@ class QplusSimpleActivity : AppCompatActivity(), ConnectionListener {
     private fun onBtnStartEEGClicked(isStatusEnabled: Boolean) {
         mbtClient.startEEG(
             EEGParams(
-                sampleRate = 250,
                 isTriggerStatusEnabled = isStatusEnabled,
                 isQualityCheckerEnabled = true
             ),
