@@ -4,6 +4,7 @@ import android.Manifest
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.os.Build
 import android.os.Bundle
 import android.widget.Button
 import android.widget.Toast
@@ -16,42 +17,50 @@ class PermissionActivity : AppCompatActivity() {
 
     // Declare the permissions you want to grant
     // Don't forget to add permissions into your AndroidManifest
-    val REQUEST_PERMISSION_CODE:Int = 1
+    val REQUEST_PERMISSION_CODE: Int = 1
     var PERMISSION_ALL: Int = 1
-    var PERMISSIONS = arrayOf(Manifest.permission.WRITE_EXTERNAL_STORAGE,
-        Manifest.permission.READ_EXTERNAL_STORAGE)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_permission)
 
+        initView()
+    }
 
+    private fun initView() {
         val btnRequestPermission = findViewById<Button>(R.id.button_storage_permission)
-        btnRequestPermission.setOnClickListener{
+        btnRequestPermission.setOnClickListener {
             // Request permissions for read and write external storage
             checkPermissions()
         }
 
-        val btnNextActivity = findViewById<Button>(R.id.button_go_qplus)
-        btnNextActivity.setOnClickListener{
+        findViewById<Button>(R.id.button_go_qplus).setOnClickListener {
             // Go to next activity
             val intent = Intent(this@PermissionActivity, QplusSimpleActivity::class.java)
+            startActivity(intent)
+        }
+
+        findViewById<Button>(R.id.button_go_melomind).setOnClickListener {
+            val intent = Intent(this@PermissionActivity, MelomindActivity::class.java)
             startActivity(intent)
         }
     }
 
     override fun onRequestPermissionsResult(
         requestCode: Int, permissions: Array<String?>,
-        grantResults: IntArray) {
+        grantResults: IntArray
+    ) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
 
-        when (requestCode){
+        when (requestCode) {
             REQUEST_PERMISSION_CODE -> {
-                if (grantResults.isNotEmpty()){
-                    var writePermission: Boolean = grantResults[0] == PackageManager.PERMISSION_GRANTED
-                    var readPermission: Boolean = grantResults[1] == PackageManager.PERMISSION_GRANTED
+                if (grantResults.isNotEmpty()) {
+                    var writePermission: Boolean =
+                        grantResults[0] == PackageManager.PERMISSION_GRANTED
+                    var readPermission: Boolean =
+                        grantResults[1] == PackageManager.PERMISSION_GRANTED
 
-                    if (writePermission && readPermission){
+                    if (writePermission && readPermission) {
                         // Granted, do something here...
                         Timber.d("get permissions!")
                     } else {
@@ -72,19 +81,59 @@ class PermissionActivity : AppCompatActivity() {
 
     private fun checkPermissions() {
         // Check if the permission has been granted
-        if(isAllPermissionsGranted(this, *PERMISSIONS)){
+        if (isAllPermissionsGranted(this, getRequiredPermissions())) {
             // All permissions are granted, do something...
-            Timber.i( "W/R external permissions have been granted")
-            Toast.makeText(this@PermissionActivity, "permissions have been already granted", Toast.LENGTH_SHORT).show()
+            Timber.i("W/R external permissions have been granted")
+            Toast.makeText(
+                this@PermissionActivity,
+                "permissions have been already granted",
+                Toast.LENGTH_SHORT
+            ).show()
         } else {
             // Ask user for authorization
             Timber.i("W/R external permissions are not granted, ask for user")
-            ActivityCompat.requestPermissions(this, PERMISSIONS, PERMISSION_ALL)
+            ActivityCompat.requestPermissions(this, getRequiredPermissions(), PERMISSION_ALL)
         }
     }
+
     // Helper function to check is all of permissions granted
-    private fun isAllPermissionsGranted(context: Context, vararg permissions: String): Boolean = permissions.all {
-        ActivityCompat.checkSelfPermission(context, it) == PackageManager.PERMISSION_GRANTED
+    private fun isAllPermissionsGranted(
+        context: Context,
+        requiredPermissions: Array<String>
+    ): Boolean =
+        requiredPermissions.all {
+            ActivityCompat.checkSelfPermission(context, it) == PackageManager.PERMISSION_GRANTED
+        }
+
+    private fun getRequiredPermissions(): Array<String> {
+        return when {
+            Build.VERSION.SDK_INT >= Build.VERSION_CODES.S -> {
+                arrayOf(
+                    Manifest.permission.WRITE_EXTERNAL_STORAGE,
+                    Manifest.permission.READ_EXTERNAL_STORAGE,
+                    Manifest.permission.BLUETOOTH_CONNECT,
+                    Manifest.permission.BLUETOOTH_SCAN
+                )
+            }
+            Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q -> {
+                arrayOf(
+                    Manifest.permission.WRITE_EXTERNAL_STORAGE,
+                    Manifest.permission.READ_EXTERNAL_STORAGE,
+                    Manifest.permission.ACCESS_FINE_LOCATION,
+                    Manifest.permission.BLUETOOTH_ADMIN,
+                    Manifest.permission.BLUETOOTH,
+                )
+            }
+            else -> {
+                arrayOf(
+                    Manifest.permission.WRITE_EXTERNAL_STORAGE,
+                    Manifest.permission.READ_EXTERNAL_STORAGE,
+                    Manifest.permission.ACCESS_COARSE_LOCATION,
+                    Manifest.permission.BLUETOOTH_ADMIN,
+                    Manifest.permission.BLUETOOTH,
+                )
+            }
+        }
     }
 
 }

@@ -20,7 +20,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.content.res.AppCompatResources
 import androidx.core.app.ActivityCompat
 import androidx.core.content.FileProvider
-import com.example.demoqplus.databinding.ActivityQplusSimpleBinding
+import com.example.demoqplus.databinding.ActivityMelomindBinding
 import com.github.mikephil.charting.charts.LineChart
 import com.github.mikephil.charting.components.Description
 import com.github.mikephil.charting.components.XAxis
@@ -40,9 +40,9 @@ import java.util.*
 
 
 @SuppressLint("MissingPermission", "SetTextI18n")
-class QplusSimpleActivity : AppCompatActivity(), ConnectionListener {
+class MelomindActivity : AppCompatActivity(), ConnectionListener {
 
-    private lateinit var binding: ActivityQplusSimpleBinding
+    private lateinit var binding: ActivityMelomindBinding
 
     // Declare bluetooth permissions
     private var isPermissionsGranted: Boolean = false
@@ -67,7 +67,7 @@ class QplusSimpleActivity : AppCompatActivity(), ConnectionListener {
     // quality check
     var lastQualities = ArrayList<LinkedList<Float>>()
     var qualityWindowLength = 6
-    var channelNb = 4
+    var channelNb = 2
     var qualityButtons = ArrayList<Button>()
     var channelFlags = ArrayList<Boolean>().apply {
         for (i in 1..channelNb) {
@@ -78,18 +78,17 @@ class QplusSimpleActivity : AppCompatActivity(), ConnectionListener {
     // line  chart
     private val TWO_SECONDS = 500f
     private var counter: Int = 0
-    private var isP3P4: Boolean = true
     private var bufferedChartData = ArrayList<ArrayList<Float>>()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
         // Initialize viewbinding
-        binding = ActivityQplusSimpleBinding.inflate(layoutInflater)
+        binding = ActivityMelomindBinding.inflate(layoutInflater)
         val view = binding.root
         setContentView(view)
 
-        supportActionBar?.title = "Q Plus"
+        supportActionBar?.title = "Melomind"
 
         // initialize some parameters
         isPermissionsGranted = isAllPermissionsGranted(this, *PERMISSIONS)
@@ -98,16 +97,13 @@ class QplusSimpleActivity : AppCompatActivity(), ConnectionListener {
         val filter = IntentFilter(BluetoothAdapter.ACTION_STATE_CHANGED)
         registerReceiver(bluetoothStateReceiver, filter)
 
-        mbtClient = MbtClientManager.getMbtClient(applicationContext, EnumMBTDevice.Q_PLUS)
+        // create mbt client
+        mbtClient = MbtClientManager.getMbtClient(applicationContext, EnumMBTDevice.MELOMIND)
 
         checkConnection()
         setBatteryLevel()
         initUI()
         initializeGraph()
-    }
-
-    fun isMelomind() : Boolean {
-        return mbtClient.getDeviceType() == EnumMBTDevice.MELOMIND
     }
 
     private fun initUI() {
@@ -208,18 +204,6 @@ class QplusSimpleActivity : AppCompatActivity(), ConnectionListener {
             }
         }
 
-        binding.simpleSwitchEEG.setOnClickListener {
-            if (isP3P4) {
-                binding.simpleSwitchEEG.text = "AF3/AF4"
-
-            } else {
-                binding.simpleSwitchEEG.text = "P3/P4"
-
-            }
-            isP3P4 = !isP3P4
-            initializeGraph()
-        }
-
         binding.simpleFinish.setOnClickListener {
             finish()
         }
@@ -228,8 +212,6 @@ class QplusSimpleActivity : AppCompatActivity(), ConnectionListener {
         // add buttons to list
         qualityButtons.add(binding.P3)
         qualityButtons.add(binding.P4)
-        qualityButtons.add(binding.AF3)
-        qualityButtons.add(binding.AF4)
         for (i in 1..channelNb) {
             lastQualities.add(LinkedList())
         }
@@ -248,11 +230,8 @@ class QplusSimpleActivity : AppCompatActivity(), ConnectionListener {
                         Timber.d("is recording")
                     }
 
-                    val getData = if (isP3P4) {
-                        getP3P4(mbtEEGPacket2.channelsData)
-                    } else {
-                        getAF3AF4(mbtEEGPacket2.channelsData)
-                    }
+                    val getData = getP3P4(mbtEEGPacket2.channelsData)
+
                     //Updating chart
                     binding.chart1.post {
                         if (counter < 2) {
@@ -311,7 +290,7 @@ class QplusSimpleActivity : AppCompatActivity(), ConnectionListener {
                     Timber.i("output file path = $path")
 
                     val contentUri: Uri = FileProvider.getUriForFile(
-                        this@QplusSimpleActivity,
+                        this@MelomindActivity,
                         "com.example.demoqplus",
                         outputFile
                     )
@@ -347,7 +326,7 @@ class QplusSimpleActivity : AppCompatActivity(), ConnectionListener {
     }
 
     private fun String.isPrivateMemory(): Boolean {
-        return this.contains(this@QplusSimpleActivity.packageName)
+        return this.contains(this@MelomindActivity.packageName)
     }
 
     /**
@@ -428,19 +407,9 @@ class QplusSimpleActivity : AppCompatActivity(), ConnectionListener {
         configureEegLineDataSet(dataSetChan2, "P3", Color.RED)
         val dataSetChan3 = LineDataSet(ArrayList(250), "Channel 2")
         configureEegLineDataSet(dataSetChan3, "P4", Color.BLUE)
-        //for indus5
-        val dataSetChan4 = LineDataSet(ArrayList(250), "Channel 3")
-        configureEegLineDataSet(dataSetChan4, "AF3", Color.MAGENTA)
-        val dataSetChan5 = LineDataSet(ArrayList(250), "Channel 4")
-        configureEegLineDataSet(dataSetChan5, "AF4", Color.CYAN)
+
         // setting chart
-        if (isP3P4) {
-            binding.chart1.data = getLineData(statusDataSet1, dataSetChan2, dataSetChan3)
-        } else {
-            binding.chart1.data = getLineData(statusDataSet2, dataSetChan4, dataSetChan5)
-        }
-        // val lineData1 = getLineData(statusDataSet1, dataSetChan2, dataSetChan3)
-        // val lineData2 = getLineData(statusDataSet2, dataSetChan4, dataSetChan5)
+        binding.chart1.data = getLineData(statusDataSet1, dataSetChan2, dataSetChan3)
 
         setupLineChart(binding.chart1)
     }
@@ -520,14 +489,6 @@ class QplusSimpleActivity : AppCompatActivity(), ConnectionListener {
         result.add(data[1])
         return result
     }
-
-    private fun getAF3AF4(data: ArrayList<ArrayList<Float>>): ArrayList<java.util.ArrayList<Float>> {
-        val result = ArrayList<ArrayList<Float>>()
-        result.add(data[2])
-        result.add(data[3])
-        return result
-    }
-
 
     private fun addEntry(
         chart: LineChart,
@@ -672,7 +633,7 @@ class QplusSimpleActivity : AppCompatActivity(), ConnectionListener {
                 }
 
                 override fun onBatteryLevelError(error: Throwable) {
-                    TODO("Not yet implemented")
+                    Timber.e(error)
                 }
             })
         }
@@ -772,7 +733,7 @@ class QplusSimpleActivity : AppCompatActivity(), ConnectionListener {
         // get device info
         mbtClient.getDeviceInformation(object : DeviceInformationListener {
             override fun onDeviceInformation(deviceInformation: DeviceInformation) {
-                this@QplusSimpleActivity.deviceInformation = deviceInformation
+                this@MelomindActivity.deviceInformation = deviceInformation
                 Timber.i(deviceInformation.toString())
             }
 
@@ -792,7 +753,6 @@ class QplusSimpleActivity : AppCompatActivity(), ConnectionListener {
         //binding.simpleIsRecording.background = AppCompatResources.getDrawable(this, R.color.red)
         setBatteryLevel()
         // disconnect reset quality checkers
-
     }
 
     override fun onConnectionError(error: Throwable) {
@@ -806,5 +766,4 @@ class QplusSimpleActivity : AppCompatActivity(), ConnectionListener {
         unregisterReceiver(bluetoothStateReceiver)
         mbtClient.disconnect()
     }
-
 }
