@@ -64,16 +64,8 @@ class QplusSimpleActivity : AppCompatActivity(), ConnectionListener {
     //EEG signals
     var eegCount = 0
 
-    // quality check
-    var lastQualities = ArrayList<LinkedList<Float>>()
-    var qualityWindowLength = 6
     var channelNb = 4
     var qualityButtons = ArrayList<Button>()
-    var channelFlags = ArrayList<Boolean>().apply {
-        for (i in 1..channelNb) {
-            this.add(false)
-        }
-    }
 
     // line  chart
     private val TWO_SECONDS = 500f
@@ -104,10 +96,6 @@ class QplusSimpleActivity : AppCompatActivity(), ConnectionListener {
         setBatteryLevel()
         initUI()
         initializeGraph()
-    }
-
-    fun isMelomind() : Boolean {
-        return mbtClient.getDeviceType() == EnumMBTDevice.MELOMIND
     }
 
     private fun initUI() {
@@ -230,10 +218,6 @@ class QplusSimpleActivity : AppCompatActivity(), ConnectionListener {
         qualityButtons.add(binding.P4)
         qualityButtons.add(binding.AF3)
         qualityButtons.add(binding.AF4)
-        for (i in 1..channelNb) {
-            lastQualities.add(LinkedList())
-        }
-
     }
 
     private fun onBtnStartEEGClicked(isStatusEnabled: Boolean) {
@@ -359,15 +343,9 @@ class QplusSimpleActivity : AppCompatActivity(), ConnectionListener {
             if (qualities != null && qualities.size == channelNb) {
                 var greenCount = 0
                 for (i in 0 until channelNb) {
-                    updateQualityBuffer(
-                        qualities[i],
-                        lastQualities[i]
-                    ) //add quality value at the end of channel quality buffer
-                    val isGreen = areGoodSignals(lastQualities[i])
+                    val isGreen = (qualities[i] > 0.01)
 
                     if (isGreen) {
-                        channelFlags[i] = true //rule 2: set flag to true
-                        greenCount++
                         qualityButtons[i].background =
                             AppCompatResources.getDrawable(applicationContext, R.color.green_signal)
                     } else {
@@ -375,41 +353,10 @@ class QplusSimpleActivity : AppCompatActivity(), ConnectionListener {
                             AppCompatResources.getDrawable(applicationContext, R.color.red)
                     }
                 }
-
-                if (isSignalGoodEnough()) {
-                    Timber.d("quality is good")
-                } else {
-                    Timber.d("quality is bad")
-                }
             } else {
                 Timber.e("qualities size is not equal $channelNb!")
             }
         }
-    }
-
-    private fun updateQualityBuffer(newValue: Float, list: LinkedList<Float>) {
-        if (!newValue.isNaN() && !newValue.isInfinite()) {
-            list.addLast(newValue)
-            if (list.size > qualityWindowLength) list.pollFirst()
-        }
-    }
-
-    private fun areGoodSignals(qualities: LinkedList<Float>): Boolean {
-        var count = 0
-        for (value in qualities) {
-            if (value < 0.25) {
-                return false
-            }
-            if (value == 1.0f) {
-                count++
-            }
-        }
-        return (count == qualities.size || count >= 3)
-    }
-
-    private fun isSignalGoodEnough(): Boolean {
-        //return haProgress == qualityWindowLength //rule 1
-        return channelFlags.count { it } == channelNb //rule 2 : all channels are passed to good at least one (separately)
     }
 
     /**
