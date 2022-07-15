@@ -176,7 +176,7 @@ class QplusSimpleActivity : AppCompatActivity(), ConnectionListener {
         // start receive EEG
         binding.simpleStartReceive.setOnClickListener {
             if (isMbtConnected && !mbtClient.isEEGEnabled()) {
-                onBtnStartEEGClicked(false)
+                onBtnStartEEGClicked(true)
                 binding.simpleStartReceive.text = "Stop EEG"
             } else {
                 mbtClient.stopEEG()
