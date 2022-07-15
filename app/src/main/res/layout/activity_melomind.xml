@@ -39,6 +39,8 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_margin="4dp"
+            android:ellipsize="end"
+            android:maxLines="1"
             android:text="battery" />
 
         <Button
@@ -46,6 +48,8 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_margin="4dp"
+            android:ellipsize="end"
+            android:maxLines="1"
             android:text="start EEG" />
 
         <Button
@@ -53,6 +57,8 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_margin="4dp"
+            android:ellipsize="end"
+            android:maxLines="1"
             android:text="start record" />
     </LinearLayout>
 
@@ -87,35 +93,12 @@
             android:layout_weight="0.2"
             android:text="P4" />
 
-        <androidx.appcompat.widget.AppCompatButton
-            android:id="@+id/AF3"
-            style="@style/Widget.AppCompat.Button.Small"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="4dp"
-            android:layout_weight="0.2"
-            android:text="AF3" />
-
-        <androidx.appcompat.widget.AppCompatButton
-            android:id="@+id/AF4"
-            style="@style/Widget.AppCompat.Button.Small"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="4dp"
-            android:layout_weight="0.2"
-            android:text="AF4" />
     </LinearLayout>
 
     <com.github.mikephil.charting.charts.LineChart
         android:id="@+id/chart1"
         android:layout_width="match_parent"
         android:layout_height="200dp" />
-
-    <Button
-        android:id="@+id/simple_switch_EEG"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="P3/P4" />
 
     <Button
         android:id="@+id/simple_finish"

@@ -7,16 +7,24 @@
     tools:context=".PermissionActivity">
 
     <Button
-        android:layout_width="wrap_content"
+        android:id="@+id/button_storage_permission"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="request Permissions"
-        android:id="@+id/button_storage_permission"/>
+        android:layout_margin="16dp"
+        android:text="request Permissions" />
 
     <Button
-        android:layout_width="wrap_content"
+        android:id="@+id/button_go_melomind"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="move to the next page"
+        android:layout_margin="16dp"
+        android:text="Melomind" />
+
+    <Button
         android:id="@+id/button_go_qplus"
-        />
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_margin="16dp"
+        android:text="Q PLUS" />
 
 </LinearLayout>

@@ -87,3 +87,4 @@ lint/tmp/
 /*/libs/
 
 app/.DS_Store
+/.idea/jarRepositories.xml
