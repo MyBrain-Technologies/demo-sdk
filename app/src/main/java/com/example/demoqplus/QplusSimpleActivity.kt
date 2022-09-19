@@ -221,6 +221,44 @@ class QplusSimpleActivity : AppCompatActivity(), ConnectionListener {
     }
 
     private fun onBtnStartEEGClicked(isStatusEnabled: Boolean) {
+        val isPacketMode = false
+        if (isPacketMode) {
+            enablePacketListener()
+        } else {
+            enableRealtimeListener()
+        }
+
+        mbtClient.startStreaming(
+            StreamingParams.Builder().setEEG(true)
+                .setTriggerStatus(isStatusEnabled)
+                .setAccelerometer(false)
+                .setQualityChecker(true)
+                .build()
+        )
+    }
+
+    private fun enableRealtimeListener() {
+        mbtClient.setEEGRealtimeListener(
+            object : EEGRealtimeListener {
+                override fun onEEGFrame(pack: EEGSignalPack) {
+                    if (mbtClient.isRecordingEnabled()) {
+                        Timber.d("is recording")
+                    }
+                    val getData = if (isP3P4) {
+                        getP3P4(pack.signals)
+                    } else {
+                        getAF3AF4(pack.signals)
+                    }
+                    //Updating chart
+                    binding.chart1.post {
+                        addEntry(binding.chart1, getData, null)
+                    }
+                }
+            }
+        )
+    }
+
+    private fun enablePacketListener() {
         mbtClient.setEEGListener(
             object : EEGListener {
                 override fun onEegPacket(mbtEEGPacket2: MbtEEGPacket2) {
@@ -265,13 +303,6 @@ class QplusSimpleActivity : AppCompatActivity(), ConnectionListener {
             },
         )
 
-        mbtClient.startStreaming(
-            StreamingParams.Builder().setEEG(true)
-                .setTriggerStatus(isStatusEnabled)
-                .setAccelerometer(false)
-                .setQualityChecker(true)
-                .build()
-        )
     }
 
     private fun onBtnStartRecordingClicked() {
@@ -523,6 +554,7 @@ class QplusSimpleActivity : AppCompatActivity(), ConnectionListener {
             // let the chart know it's data has changed
             chart.notifyDataSetChanged()
             chart.setVisibleXRangeMaximum(TWO_SECONDS)
+            chart.moveViewToX(chart.xChartMax)
             chart.invalidate()
         } else {
             throw IllegalStateException("Graph not correctly initialized")
