@@ -179,7 +179,7 @@ class QplusSimpleActivity : AppCompatActivity(), ConnectionListener {
                 onBtnStartEEGClicked(true)
                 binding.simpleStartReceive.text = "Stop EEG"
             } else {
-                mbtClient.stopEEG()
+                mbtClient.stopStreaming()
                 binding.simpleStartReceive.text = "Start EEG"
                 eegCount = 0
             }
@@ -191,7 +191,7 @@ class QplusSimpleActivity : AppCompatActivity(), ConnectionListener {
                 onBtnStartRecordingClicked()
                 binding.simpleStartRecord.text = "Stop Record"
             } else {
-                mbtClient.stopEEGRecording()
+                mbtClient.stopRecording()
                 binding.simpleStartRecord.text = "Start Record"
             }
         }
@@ -221,11 +221,7 @@ class QplusSimpleActivity : AppCompatActivity(), ConnectionListener {
     }
 
     private fun onBtnStartEEGClicked(isStatusEnabled: Boolean) {
-        mbtClient.startEEG(
-            EEGParams(
-                isTriggerStatusEnabled = isStatusEnabled,
-                isQualityCheckerEnabled = true
-            ),
+        mbtClient.setEEGListener(
             object : EEGListener {
                 override fun onEegPacket(mbtEEGPacket2: MbtEEGPacket2) {
                     if (mbtClient.isRecordingEnabled()) {
@@ -259,10 +255,22 @@ class QplusSimpleActivity : AppCompatActivity(), ConnectionListener {
                     updateQualityButtons(mbtEEGPacket2.qualities)
                 }
 
+                override fun onEEGStatusChange(isEnabled: Boolean) {
+                    Timber.i("onEEGStatusChange = $isEnabled")
+                }
+
                 override fun onEegError(error: Throwable) {
                     Timber.e(error)
                 }
             },
+        )
+
+        mbtClient.startStreaming(
+            StreamingParams.Builder().setEEG(true)
+                .setTriggerStatus(isStatusEnabled)
+                .setAccelerometer(false)
+                .setQualityChecker(true)
+                .build()
         )
     }
 
@@ -282,7 +290,7 @@ class QplusSimpleActivity : AppCompatActivity(), ConnectionListener {
         }
         val outputFile = File(folder, name)
 
-        mbtClient.startEEGRecording(
+        mbtClient.startRecording(
             RecordingOption(
                 outputFile,
                 KwakContext().apply { ownerId = "1" },
@@ -619,7 +627,7 @@ class QplusSimpleActivity : AppCompatActivity(), ConnectionListener {
                 }
 
                 override fun onBatteryLevelError(error: Throwable) {
-                    TODO("Not yet implemented")
+                    Timber.e(error)
                 }
             })
         }

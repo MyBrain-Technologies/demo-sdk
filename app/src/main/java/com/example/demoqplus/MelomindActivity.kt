@@ -179,7 +179,7 @@ class MelomindActivity : AppCompatActivity(), ConnectionListener {
                 onBtnStartEEGClicked(false)
                 binding.simpleStartReceive.text = "Stop EEG"
             } else {
-                mbtClient.stopEEG()
+                mbtClient.stopStreaming()
                 binding.simpleStartReceive.text = "Start EEG"
                 eegCount = 0
             }
@@ -191,7 +191,7 @@ class MelomindActivity : AppCompatActivity(), ConnectionListener {
                 onBtnStartRecordingClicked()
                 binding.simpleStartRecord.text = "Stop Record"
             } else {
-                mbtClient.stopEEGRecording()
+                mbtClient.stopRecording()
                 binding.simpleStartRecord.text = "Start Record"
             }
         }
@@ -207,11 +207,16 @@ class MelomindActivity : AppCompatActivity(), ConnectionListener {
     }
 
     private fun onBtnStartEEGClicked(isStatusEnabled: Boolean) {
-        mbtClient.startEEG(
-            EEGParams(
-                isTriggerStatusEnabled = isStatusEnabled,
-                isQualityCheckerEnabled = true
-            ),
+        mbtClient.setEEGRealtimeListener(
+            object : EEGRealtimeListener {
+                override fun onEEGFrame(pack: EEGSignalPack) {
+//                    TODO("Not yet implemented")
+                }
+
+            }
+        )
+
+        mbtClient.setEEGListener(
             object : EEGListener {
                 override fun onEegPacket(mbtEEGPacket2: MbtEEGPacket2) {
                     if (mbtClient.isRecordingEnabled()) {
@@ -242,10 +247,22 @@ class MelomindActivity : AppCompatActivity(), ConnectionListener {
                     updateQualityButtons(mbtEEGPacket2.qualities)
                 }
 
+                override fun onEEGStatusChange(isEnabled: Boolean) {
+                    Timber.i("onEEGStatusChange = $isEnabled")
+                }
+
                 override fun onEegError(error: Throwable) {
                     Timber.e(error)
                 }
             },
+        )
+
+        mbtClient.startStreaming(
+            StreamingParams.Builder().setEEG(true)
+                .setTriggerStatus(isStatusEnabled)
+                .setAccelerometer(false)
+                .setQualityChecker(true)
+                .build()
         )
     }
 
@@ -265,7 +282,7 @@ class MelomindActivity : AppCompatActivity(), ConnectionListener {
         }
         val outputFile = File(folder, name)
 
-        mbtClient.startEEGRecording(
+        mbtClient.startRecording(
             RecordingOption(
                 outputFile,
                 KwakContext().apply { ownerId = "1" },

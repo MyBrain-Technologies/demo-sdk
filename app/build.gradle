@@ -50,7 +50,8 @@ dependencies {
     //MBT SDK by remote, please configure your user name and password in local.properties
     def snapshot = true
     if (snapshot) {
-        implementation 'com.mybraintech.android:sdk:3.1.2-20220713.085644-1'
+//        implementation 'com.mybraintech.android:sdk:3.1.2-20220713.085644-1'
+        implementation 'com.mybraintech.android:sdk:3.2.1-LSL-20220919.205810-1'
     } else {
         implementation("com.mybraintech.android:sdk:3.0.2.rc2")
     }
