@@ -42,7 +42,7 @@
 
         <provider
             android:name="com.mybraintech.demosdk.EEGFileProvider"
-            android:authorities="com.mybraintech.demosdk"
+            android:authorities="authority.com.mybraintech.demosdk"
             android:exported="false"
             android:grantUriPermissions="true">
             <meta-data

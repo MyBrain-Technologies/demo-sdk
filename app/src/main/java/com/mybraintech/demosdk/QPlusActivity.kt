@@ -13,11 +13,9 @@ import android.graphics.Color
 import android.net.Uri
 import android.os.Bundle
 import android.os.Environment
-import android.widget.Button
 import android.widget.Toast
 import androidx.annotation.ColorInt
 import androidx.appcompat.app.AppCompatActivity
-import androidx.appcompat.content.res.AppCompatResources
 import androidx.core.app.ActivityCompat
 import androidx.core.content.FileProvider
 import com.github.mikephil.charting.charts.LineChart
@@ -64,11 +62,8 @@ class QPlusActivity : AppCompatActivity(), ConnectionListener {
     //EEG signals
     var eegCount = 0
 
-    var channelNb = 4
-    var qualityButtons = ArrayList<Button>()
-
     // line  chart
-    private val TWO_SECONDS = 500f
+    private val TWO_SECONDS = 500f // frequency is 250 samples per sec
     private var counter: Int = 0
     private var isP3P4: Boolean = true
     private var bufferedChartData = ArrayList<ArrayList<Float>>()
@@ -212,22 +207,11 @@ class QPlusActivity : AppCompatActivity(), ConnectionListener {
         binding.simpleFinish.setOnClickListener {
             finish()
         }
-
-        // quality checkers
-        // add buttons to list
-        qualityButtons.add(binding.P3)
-        qualityButtons.add(binding.P4)
-        qualityButtons.add(binding.AF3)
-        qualityButtons.add(binding.AF4)
     }
 
     private fun onBtnStartEEGClicked() {
         val listener = object : EEGListener {
             override fun onEegPacket(mbtEEGPacket2: MbtEEGPacket2) {
-                if (mbtClient.isRecordingEnabled()) {
-                    Timber.d("is recording")
-                }
-
                 val getData = if (isP3P4) {
                     getP3P4(mbtEEGPacket2.channelsData)
                 } else {
@@ -304,7 +288,7 @@ class QPlusActivity : AppCompatActivity(), ConnectionListener {
 
                     val contentUri: Uri = FileProvider.getUriForFile(
                         this@QPlusActivity,
-                        "com.mybraintech.demoqplus",
+                        "authority.com.mybraintech.demosdk",
                         outputFile
                     )
                     Intent(Intent.ACTION_SEND).apply {
@@ -348,20 +332,13 @@ class QPlusActivity : AppCompatActivity(), ConnectionListener {
 
     private fun updateQualityButtons(qualities: ArrayList<Float>?) {
         runOnUiThread {
-            if (qualities != null && qualities.size == channelNb) {
-                for (i in 0 until channelNb) {
-                    val isGreen = (qualities[i] > 0.01)
-
-                    if (isGreen) {
-                        qualityButtons[i].background =
-                            AppCompatResources.getDrawable(applicationContext, R.color.green_signal)
-                    } else {
-                        qualityButtons[i].background =
-                            AppCompatResources.getDrawable(applicationContext, R.color.red)
-                    }
-                }
+            if (qualities != null && qualities.size == 4) {
+                binding.P3.text = String.format("P3: %.1f", qualities[0])
+                binding.P4.text = String.format("P4: %.1f", qualities[1])
+                binding.AF3.text = String.format("AF3: %.1f", qualities[2])
+                binding.AF4.text = String.format("AF4: %.1f", qualities[3])
             } else {
-                Timber.e("qualities size is not equal $channelNb!")
+                Timber.e("qualities size is not equal 4!")
             }
         }
     }
@@ -705,15 +682,15 @@ class QPlusActivity : AppCompatActivity(), ConnectionListener {
      * onConnectionError() / onDeviceDisconnected() / onDeviceReady() / onServiceDiscovered()
      * **/
     override fun onBonded(device: BluetoothDevice) {
-
+        Timber.d("onBonded : ${device.name}")
     }
 
     override fun onBondingFailed(device: BluetoothDevice) {
-
+        Timber.d("onBondingFailed : ${device.name}")
     }
 
     override fun onBondingRequired(device: BluetoothDevice) {
-
+        Timber.d("onBondingRequired : ${device.name}")
     }
 
     // connections
