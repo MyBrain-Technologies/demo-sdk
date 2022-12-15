@@ -1,4 +1,4 @@
-package com.example.demoqplus
+package com.mybraintech.demosdk
 
 import androidx.core.content.FileProvider
 

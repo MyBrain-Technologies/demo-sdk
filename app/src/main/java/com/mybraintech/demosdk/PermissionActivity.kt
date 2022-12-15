@@ -1,4 +1,4 @@
-package com.example.demoqplus
+package com.mybraintech.demosdk
 
 import android.Manifest
 import android.content.Context
@@ -34,15 +34,14 @@ class PermissionActivity : AppCompatActivity() {
             checkPermissions()
         }
 
-        findViewById<Button>(R.id.button_go_qplus).setOnClickListener {
+        findViewById<Button>(R.id.button_go_q_plus).setOnClickListener {
             // Go to next activity
-            val intent = Intent(this@PermissionActivity, QplusSimpleActivity::class.java)
+            val intent = Intent(this@PermissionActivity, QPlusActivity::class.java)
             startActivity(intent)
         }
 
         findViewById<Button>(R.id.button_go_melomind).setOnClickListener {
-            val intent = Intent(this@PermissionActivity, MelomindActivity::class.java)
-            startActivity(intent)
+            Toast.makeText(applicationContext, "under construction", Toast.LENGTH_SHORT).show()
         }
     }
 
@@ -55,9 +54,9 @@ class PermissionActivity : AppCompatActivity() {
         when (requestCode) {
             REQUEST_PERMISSION_CODE -> {
                 if (grantResults.isNotEmpty()) {
-                    var writePermission: Boolean =
+                    val writePermission: Boolean =
                         grantResults[0] == PackageManager.PERMISSION_GRANTED
-                    var readPermission: Boolean =
+                    val readPermission: Boolean =
                         grantResults[1] == PackageManager.PERMISSION_GRANTED
 
                     if (writePermission && readPermission) {

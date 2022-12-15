@@ -1,4 +1,4 @@
-package com.example.demoqplus
+package com.mybraintech.demosdk
 
 import org.junit.Test
 
