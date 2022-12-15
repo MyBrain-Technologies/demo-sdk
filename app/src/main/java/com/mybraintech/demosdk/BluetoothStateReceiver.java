@@ -1,4 +1,4 @@
-package com.example.demoqplus;
+package com.mybraintech.demosdk;
 
 import android.bluetooth.BluetoothAdapter;
 import android.content.BroadcastReceiver;
@@ -9,11 +9,11 @@ public class BluetoothStateReceiver extends BroadcastReceiver {
 
     private boolean isActivated;
 
-    public BluetoothStateReceiver(boolean state){
+    public BluetoothStateReceiver(boolean state) {
         this.isActivated = state;
     }
 
-    public boolean isBluetoothOn(){
+    public boolean isBluetoothOn() {
         return this.isActivated;
     }
 

@@ -4,7 +4,8 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    tools:context=".QplusSimpleActivity"
+    tools:context=".QPlusActivity"
+    tools:ignore="HardcodedText,ButtonStyle"
     tools:viewBindingIgnore="false">
 
     <Button
@@ -69,36 +70,32 @@
             android:text="Qualities"
             android:textAppearance="@style/TextAppearance.AppCompat.Body1" />
 
-        <androidx.appcompat.widget.AppCompatButton
+        <TextView
             android:id="@+id/P3"
-            style="@style/Widget.AppCompat.Button.Small"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginStart="4dp"
             android:layout_weight="0.2"
             android:text="P3" />
 
-        <androidx.appcompat.widget.AppCompatButton
+        <TextView
             android:id="@+id/P4"
-            style="@style/Widget.AppCompat.Button.Small"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginStart="4dp"
             android:layout_weight="0.2"
             android:text="P4" />
 
-        <androidx.appcompat.widget.AppCompatButton
+        <TextView
             android:id="@+id/AF3"
-            style="@style/Widget.AppCompat.Button.Small"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginStart="4dp"
             android:layout_weight="0.2"
             android:text="AF3" />
 
-        <androidx.appcompat.widget.AppCompatButton
+        <TextView
             android:id="@+id/AF4"
-            style="@style/Widget.AppCompat.Button.Small"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginStart="4dp"
