@@ -47,8 +47,10 @@ dependencies {
     implementation 'androidx.navigation:navigation-fragment-ktx:2.3.5'
     implementation 'androidx.navigation:navigation-ui-ktx:2.3.5'
 
-    //MBT SDK by remote, please configure your user name and password in local.properties
-    def snapshot = true
+    // MBT SDK by remote, please configure your user name and password in local.properties
+    // maven_user=<user_name_provided_by_MBT>
+    // maven_password=<password_provided_by_MBT>
+    def snapshot = true // for external users, please configure snapshot = false
     if (snapshot) {
         implementation 'com.mybraintech.android:sdk:3.1.2-20220713.085644-1'
     } else {
