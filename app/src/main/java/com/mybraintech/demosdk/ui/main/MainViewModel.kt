@@ -7,7 +7,7 @@ import com.mybraintech.sdk.core.model.MbtDevice
 
 class MainViewModel : ViewModel() {
 
-    lateinit var targetDevice: MbtDevice
     lateinit var mbtClient: MbtClient
+    var targetDevice: MbtDevice? = null
     lateinit var deviceInformation: DeviceInformation
 }

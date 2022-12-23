@@ -13,6 +13,8 @@ import androidx.lifecycle.ViewModelProvider
 import com.mybraintech.demosdk.R
 import com.mybraintech.demosdk.databinding.FragmentConnectionBinding
 import com.mybraintech.demosdk.ui.main.MainViewModel
+import com.mybraintech.sdk.core.listener.BatteryLevelListener
+import com.mybraintech.sdk.core.listener.ConnectionListener
 import com.mybraintech.sdk.core.listener.ScanResultListener
 import com.mybraintech.sdk.core.model.MbtDevice
 import com.zhuinden.fragmentviewbindingdelegatekt.viewBinding
@@ -46,6 +48,71 @@ class ConnectionFragment : Fragment() {
             Timber.e(error)
         }
 
+    }
+
+    private val connectionListener = object : ConnectionListener {
+        override fun onServiceDiscovered() {
+            Timber.i( "onServiceDiscovered")
+        }
+
+        override fun onBondingRequired(device: BluetoothDevice) {
+            Timber.i("onBondingRequired : ${device.name}")
+        }
+
+        override fun onBonded(device: BluetoothDevice) {
+            Timber.i("onBonded : ${device.name}")
+        }
+
+        override fun onBondingFailed(device: BluetoothDevice) {
+            Timber.i("onBondingFailed : ${device.name}")
+        }
+
+        override fun onDeviceReady() {
+            Timber.i("onDeviceReady")
+            addLog("onDeviceReady")
+            mainViewModel.mbtClient.getBatteryLevel(batteryLevelListener)
+        }
+
+        override fun onDeviceDisconnected() {
+            Timber.i("onDeviceDisconnected")
+            addLog("onDeviceDisconnected")
+        }
+
+        override fun onConnectionError(error: Throwable) {
+            Timber.e(error)
+            addLog("onConnectionError : ${error.message}")
+        }
+    }
+
+    private val batteryLevelListener = object : BatteryLevelListener{
+        override fun onBatteryLevel(float: Float) {
+            Timber.i("onBatteryLevel : $float")
+            addLog("onBatteryLevel : $float")
+        }
+
+        override fun onBatteryLevelError(error: Throwable) {
+            Timber.e(error, "onBatteryLevelError")
+        }
+
+    }
+
+    companion object {
+        @JvmStatic
+        fun newInstance() =
+            ConnectionFragment().apply {
+                arguments = Bundle().apply {
+                }
+            }
+    }
+
+    private fun View.antiDoubleClick(delay: Long = 200) {
+        this.isEnabled = false
+        antiDoubleClickHandler.postDelayed(
+            {
+                this.isEnabled = true
+            },
+            delay
+        )
     }
 
     private fun addLog(line: String) {
@@ -85,25 +152,15 @@ class ConnectionFragment : Fragment() {
             mainViewModel.mbtClient.stopScan()
         }
 
-        TODO("btn connect")
-    }
-
-    private fun View.antiDoubleClick(delay: Long = 200) {
-        this.isEnabled = false
-        antiDoubleClickHandler.postDelayed(
-            {
-                this.isEnabled = true
-            },
-            delay
-        )
-    }
-
-    companion object {
-        @JvmStatic
-        fun newInstance() =
-            ConnectionFragment().apply {
-                arguments = Bundle().apply {
-                }
+        binding.btnConnect.setOnClickListener {
+            it.antiDoubleClick()
+            if (mainViewModel.targetDevice == null) {
+                addLog("please scan first")
+            } else {
+                addLog("connect...")
+                mainViewModel.mbtClient.connect(mainViewModel.targetDevice!!, connectionListener)
             }
+        }
     }
+
 }
