@@ -17,16 +17,22 @@
     <uses-permission android:name="android.permission.READ_OWNER_DATA" />
 
     <application
-        android:name="com.mybraintech.demosdk.DemoSDKApplication"
+        android:name=".DemoSDKApplication"
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.DemoSDK">
-
         <activity
-            android:name="com.mybraintech.demosdk.PermissionActivity"
+            android:name=".ui.main.MainActivity"
+            android:exported="false">
+            <meta-data
+                android:name="android.app.lib_name"
+                android:value="" />
+        </activity>
+        <activity
+            android:name=".ui.PermissionActivity"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -35,13 +41,8 @@
             </intent-filter>
         </activity>
 
-        <activity
-            android:name="com.mybraintech.demosdk.QPlusActivity"
-            android:exported="false"
-            android:label="QPlus" />
-
         <provider
-            android:name="com.mybraintech.demosdk.EEGFileProvider"
+            android:name=".EEGFileProvider"
             android:authorities="authority.com.mybraintech.demosdk"
             android:exported="false"
             android:grantUriPermissions="true">
@@ -49,7 +50,6 @@
                 android:name="android.support.FILE_PROVIDER_PATHS"
                 android:resource="@xml/file_provider_paths" />
         </provider>
-
     </application>
 
 </manifest>

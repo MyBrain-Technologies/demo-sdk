@@ -1,4 +1,4 @@
-package com.mybraintech.demosdk
+package com.mybraintech.demosdk.ui.main.frags
 
 import android.Manifest
 import android.annotation.SuppressLint
@@ -11,11 +11,15 @@ import android.content.IntentFilter
 import android.content.pm.PackageManager
 import android.graphics.Color
 import android.net.Uri
+import androidx.lifecycle.ViewModelProvider
 import android.os.Bundle
 import android.os.Environment
+import android.view.LayoutInflater
+import androidx.fragment.app.Fragment
+import android.view.View
+import android.view.ViewGroup
 import android.widget.Toast
 import androidx.annotation.ColorInt
-import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.FileProvider
 import com.github.mikephil.charting.charts.LineChart
@@ -25,22 +29,27 @@ import com.github.mikephil.charting.components.YAxis
 import com.github.mikephil.charting.data.Entry
 import com.github.mikephil.charting.data.LineData
 import com.github.mikephil.charting.data.LineDataSet
+import com.mybraintech.demosdk.BluetoothStateReceiver
+import com.mybraintech.demosdk.R
 import com.mybraintech.demosdk.databinding.ActivityQPlusBinding
+import com.mybraintech.demosdk.ui.main.MainViewModel
 import com.mybraintech.sdk.MbtClient
 import com.mybraintech.sdk.MbtClientManager
 import com.mybraintech.sdk.core.listener.*
 import com.mybraintech.sdk.core.model.*
 import com.mybraintech.sdk.util.toJson
+import com.zhuinden.fragmentviewbindingdelegatekt.viewBinding
 import timber.log.Timber
 import java.io.File
 import java.text.SimpleDateFormat
 import java.util.*
 
+@Suppress("DEPRECATION")
+@SuppressLint("MissingPermission,SetTextI18n")
+class StreamingFragment : Fragment(), ConnectionListener {
 
-@SuppressLint("MissingPermission", "SetTextI18n")
-class QPlusActivity : AppCompatActivity(), ConnectionListener {
-
-    private lateinit var binding: ActivityQPlusBinding
+    private val binding by viewBinding(ActivityQPlusBinding::bind)
+    private lateinit var mainViewModel : MainViewModel
 
     // Declare bluetooth permissions
     private var isPermissionsGranted: Boolean = false
@@ -68,25 +77,28 @@ class QPlusActivity : AppCompatActivity(), ConnectionListener {
     private var isP3P4: Boolean = true
     private var bufferedChartData = ArrayList<ArrayList<Float>>()
 
-    @Suppress("DEPRECATION")
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
+    override fun onCreateView(
+        inflater: LayoutInflater, container: ViewGroup?,
+        savedInstanceState: Bundle?
+    ): View? {
+        // Inflate the layout for this fragment
+        return inflater.inflate(R.layout.activity_q_plus, container, false)
+    }
 
-        // Initialize viewbinding
-        binding = ActivityQPlusBinding.inflate(layoutInflater)
-        val view = binding.root
-        setContentView(view)
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+        mainViewModel = ViewModelProvider(requireActivity()).get(MainViewModel::class.java)
 
-        supportActionBar?.title = "Q Plus"
+        requireActivity().actionBar?.title = "Q Plus"
 
         // initialize some parameters
-        isPermissionsGranted = isAllPermissionsGranted(this, *PERMISSIONS)
+        isPermissionsGranted = isAllPermissionsGranted(requireContext(), *PERMISSIONS)
         bluetoothStateReceiver =
             BluetoothStateReceiver(BluetoothAdapter.getDefaultAdapter().isEnabled)
         val filter = IntentFilter(BluetoothAdapter.ACTION_STATE_CHANGED)
-        registerReceiver(bluetoothStateReceiver, filter)
+        requireActivity().registerReceiver(bluetoothStateReceiver, filter)
 
-        mbtClient = MbtClientManager.getMbtClient(applicationContext, EnumMBTDevice.Q_PLUS)
+        mbtClient = MbtClientManager.getMbtClient(requireContext(), EnumMBTDevice.Q_PLUS)
 
         checkConnection()
         setBatteryLevel()
@@ -119,7 +131,7 @@ class QPlusActivity : AppCompatActivity(), ConnectionListener {
                             binding.txtDeviceName.text = mbtDevice?.bluetoothDevice?.name
 
                             Toast.makeText(
-                                applicationContext,
+                                requireContext(),
                                 "device: ${mbtDevice!!.bluetoothDevice.name} has been found! ",
                                 Toast.LENGTH_LONG
                             ).show()
@@ -144,7 +156,7 @@ class QPlusActivity : AppCompatActivity(), ConnectionListener {
                     })
                 }
                 else -> {
-                    Toast.makeText(this, "bluetooth is off, please turn it on.", Toast.LENGTH_SHORT)
+                    Toast.makeText(requireContext(), "bluetooth is off, please turn it on.", Toast.LENGTH_SHORT)
                         .show()
                     activateBluetooth()
                 }
@@ -205,38 +217,38 @@ class QPlusActivity : AppCompatActivity(), ConnectionListener {
         }
 
         binding.simpleFinish.setOnClickListener {
-            finish()
+            requireActivity().supportFragmentManager.popBackStackImmediate()
         }
     }
 
     private fun onBtnStartEEGClicked() {
         val listener = object : EEGListener {
-            override fun onEegPacket(mbtEEGPacket2: MbtEEGPacket2) {
+            override fun onEegPacket(mbtEEGPacket: MbtEEGPacket) {
                 val getData = if (isP3P4) {
-                    getP3P4(mbtEEGPacket2.channelsData)
+                    getP3P4(mbtEEGPacket.channelsData)
                 } else {
-                    getAF3AF4(mbtEEGPacket2.channelsData)
+                    getAF3AF4(mbtEEGPacket.channelsData)
                 }
                 //Updating chart
                 binding.chart1.post {
                     if (counter < 2) {
                         counter++
-                        addEntry(binding.chart1, getData, mbtEEGPacket2.statusData)
+                        addEntry(binding.chart1, getData, mbtEEGPacket.statusData)
                     } else {
                         updateEntry(
                             binding.chart1,
                             getData,
                             bufferedChartData,
-                            mbtEEGPacket2.statusData
+                            mbtEEGPacket.statusData
                         )
                     }
                     bufferedChartData = getData
-                    bufferedChartData.add(0, mbtEEGPacket2.statusData)
+                    bufferedChartData.add(0, mbtEEGPacket.statusData)
                 }
                 // bufferedChartData2 = af3af4Data
                 // bufferedChartData2.add(0, mbtEEGPacket2.statusData)
 
-                updateQualityButtons(mbtEEGPacket2.qualities)
+                updateQualityButtons(mbtEEGPacket.qualities)
             }
 
             override fun onEEGStatusChange(isEnabled: Boolean) {
@@ -270,7 +282,7 @@ class QPlusActivity : AppCompatActivity(), ConnectionListener {
         var folder = File(Environment.getExternalStorageDirectory().toString() + "/MBT_DEMO")
         folder.mkdirs()
         if (!folder.isDirectory || !folder.canWrite()) {
-            folder = cacheDir
+            folder = requireActivity().cacheDir
         }
         val outputFile = File(folder, name)
 
@@ -287,7 +299,7 @@ class QPlusActivity : AppCompatActivity(), ConnectionListener {
                     Timber.i("output file path = $path")
 
                     val contentUri: Uri = FileProvider.getUriForFile(
-                        this@QPlusActivity,
+                        requireContext(),
                         "authority.com.mybraintech.demosdk",
                         outputFile
                     )
@@ -323,7 +335,7 @@ class QPlusActivity : AppCompatActivity(), ConnectionListener {
 
     @Suppress("unused")
     private fun String.isPrivateMemory(): Boolean {
-        return this.contains(this@QPlusActivity.packageName)
+        return this.contains(requireActivity().packageName)
     }
 
     /**
@@ -331,7 +343,7 @@ class QPlusActivity : AppCompatActivity(), ConnectionListener {
      * **/
 
     private fun updateQualityButtons(qualities: ArrayList<Float>?) {
-        runOnUiThread {
+        requireActivity().runOnUiThread {
             if (qualities != null && qualities.size == 4) {
                 binding.P3.text = String.format("P3: %.1f", qualities[0])
                 binding.P4.text = String.format("P4: %.1f", qualities[1])
@@ -599,13 +611,13 @@ class QPlusActivity : AppCompatActivity(), ConnectionListener {
                     // set process and text
                     val level: Int = float.toInt()
                     val info = "Device info: battery level: $level %"
-                    Toast.makeText(applicationContext, info, Toast.LENGTH_SHORT).show()
+                    Toast.makeText(requireContext(), info, Toast.LENGTH_SHORT).show()
                 }
 
                 override fun onBatteryLevelError(error: Throwable) {
                     Timber.e("onBatteryLevelError : ${error.message}")
                     Toast.makeText(
-                        applicationContext,
+                        requireContext(),
                         "onBatteryLevelError : ${error.message}",
                         Toast.LENGTH_SHORT
                     ).show()
@@ -633,7 +645,7 @@ class QPlusActivity : AppCompatActivity(), ConnectionListener {
             }
         } else {
             // request permissions
-            ActivityCompat.requestPermissions(this, PERMISSIONS, 1)
+            ActivityCompat.requestPermissions(requireActivity(), PERMISSIONS, 1)
         }
     }
 
@@ -644,6 +656,7 @@ class QPlusActivity : AppCompatActivity(), ConnectionListener {
         }
 
     // fetch request permissions results
+    @Deprecated("Deprecated in Java")
     override fun onRequestPermissionsResult(
         requestCode: Int,
         permissions: Array<out String>,
@@ -708,7 +721,7 @@ class QPlusActivity : AppCompatActivity(), ConnectionListener {
         // get device info
         mbtClient.getDeviceInformation(object : DeviceInformationListener {
             override fun onDeviceInformation(deviceInformation: DeviceInformation) {
-                this@QPlusActivity.deviceInformation = deviceInformation
+                mainViewModel.deviceInformation = deviceInformation
                 Timber.i(deviceInformation.toString())
             }
 
@@ -739,7 +752,7 @@ class QPlusActivity : AppCompatActivity(), ConnectionListener {
     // activity
     override fun onDestroy() {
         super.onDestroy()
-        unregisterReceiver(bluetoothStateReceiver)
+        requireActivity().unregisterReceiver(bluetoothStateReceiver)
         mbtClient.disconnect()
     }
 

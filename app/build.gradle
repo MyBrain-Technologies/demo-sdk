@@ -11,14 +11,14 @@ android {
         minSdk 22
         //noinspection OldTargetApi
         targetSdk 32
-        versionCode 6
-        versionName "1.4"
+        versionCode 7
+        versionName "1.5.alpha"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
 
-    viewBinding {
-        enabled = true
+    buildFeatures {
+        viewBinding = true
     }
 
     buildTypes {
@@ -37,6 +37,29 @@ android {
 }
 
 dependencies {
+    // MBT SDK by remote, please configure your user name and password in local.properties
+    // maven_user=<user_name_provided_by_MBT>
+    // maven_password=<password_provided_by_MBT>
+    // After that, please define the MBT SDK here :
+    def releaseVersion = "3.2.2.1"
+
+    Properties properties = new Properties()
+    properties.load(project.rootProject.file('local.properties').newDataInputStream())
+    def sdkMode = properties.getProperty('sdkMode')
+    if (sdkMode == "local") {
+        implementation project(':sdk-v3')
+    } else if (sdkMode == "snapshot") {
+        implementation 'com.mybraintech.android:sdk:3.1.2-20220713.085644-1'
+    } else {
+        implementation("com.mybraintech.android:sdk:$releaseVersion")
+    }
+
+
+    // view binding for fragment
+    implementation 'com.github.Zhuinden:fragmentviewbindingdelegate-kt:1.0.0'
+
+    // flexbox layout
+    implementation 'com.google.android:flexbox:1.0.0'
 
     implementation 'androidx.legacy:legacy-support-v4:1.0.0'
     //noinspection GradleDependency
@@ -55,16 +78,6 @@ dependencies {
     implementation 'androidx.navigation:navigation-fragment-ktx:2.3.5'
     //noinspection GradleDependency
     implementation 'androidx.navigation:navigation-ui-ktx:2.3.5'
-
-    // MBT SDK by remote, please configure your user name and password in local.properties
-    // maven_user=<user_name_provided_by_MBT>
-    // maven_password=<password_provided_by_MBT>
-    def snapshot = false // for external users, please configure snapshot = false
-    if (snapshot) {
-        implementation 'com.mybraintech.android:sdk:3.1.2-20220713.085644-1'
-    } else {
-        implementation("com.mybraintech.android:sdk:3.2.2.1")
-    }
 
     implementation 'com.jakewharton.timber:timber:5.0.1'
 

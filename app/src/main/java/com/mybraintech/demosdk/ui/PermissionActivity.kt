@@ -1,4 +1,4 @@
-package com.mybraintech.demosdk
+package com.mybraintech.demosdk.ui
 
 import android.Manifest
 import android.content.Context
@@ -10,6 +10,8 @@ import android.widget.Button
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
+import com.mybraintech.demosdk.R
+import com.mybraintech.demosdk.ui.main.MainActivity
 import timber.log.Timber
 
 
@@ -36,7 +38,7 @@ class PermissionActivity : AppCompatActivity() {
 
         findViewById<Button>(R.id.button_go_q_plus).setOnClickListener {
             // Go to next activity
-            val intent = Intent(this@PermissionActivity, QPlusActivity::class.java)
+            val intent = Intent(applicationContext, MainActivity::class.java)
             startActivity(intent)
         }
 
