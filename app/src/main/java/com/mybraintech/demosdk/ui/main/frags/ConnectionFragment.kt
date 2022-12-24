@@ -37,7 +37,7 @@ class ConnectionFragment : Fragment() {
                 addLog("onMbtDevices : size = ${mbtDevices.size} | first device name = ${mbtDevices[0].bluetoothDevice.name}")
                 mainViewModel.targetDevice = mbtDevices[0]
                 addLog("stopScan")
-                mainViewModel.mbtClient.stopScan()
+                mainViewModel.getMbtClient().stopScan()
             } else {
                 addLog("error : mbtDevices is empty ")
             }
@@ -73,7 +73,7 @@ class ConnectionFragment : Fragment() {
         override fun onDeviceReady() {
             Timber.i("onDeviceReady")
             addLog("onDeviceReady")
-            mainViewModel.mbtClient.getBatteryLevel(batteryLevelListener)
+            mainViewModel.getMbtClient().getBatteryLevel(batteryLevelListener)
         }
 
         override fun onDeviceDisconnected() {
@@ -169,20 +169,20 @@ class ConnectionFragment : Fragment() {
     private fun initView() {
         binding.btnIsConnected.setOnClickListener {
             it.antiDoubleClick()
-            val connectionStatus = mainViewModel.mbtClient.getBleConnectionStatus()
+            val connectionStatus = mainViewModel.getMbtClient().getBleConnectionStatus()
             addLog("connectionStatus = ${connectionStatus.isConnectionEstablished}")
         }
 
         binding.btnStartScan.setOnClickListener {
             it.antiDoubleClick()
             addLog("startScan")
-            mainViewModel.mbtClient.startScan(scanResultListener)
+            mainViewModel.getMbtClient().startScan(scanResultListener)
         }
 
         binding.btnStopScan.setOnClickListener {
             it.antiDoubleClick()
             addLog("stopScan")
-            mainViewModel.mbtClient.stopScan()
+            mainViewModel.getMbtClient().stopScan()
         }
 
         binding.btnConnect.setOnClickListener {
@@ -191,8 +191,13 @@ class ConnectionFragment : Fragment() {
                 addLog("please scan first")
             } else {
                 addLog("connect...")
-                mainViewModel.mbtClient.connect(mainViewModel.targetDevice!!, connectionListener)
+                mainViewModel.getMbtClient().connect(mainViewModel.targetDevice!!, connectionListener)
             }
+        }
+
+        binding.btnDisconnect.setOnClickListener {
+            it.antiDoubleClick()
+            mainViewModel.getMbtClient().disconnect()
         }
 
         binding.btnHeadsetStatus.setOnClickListener {
@@ -201,7 +206,7 @@ class ConnectionFragment : Fragment() {
                 addLog("please connect first")
             } else {
                 addLog("get headset status...")
-                mainViewModel.mbtClient.getDeviceSystemStatus(deviceSystemStatusListener)
+                mainViewModel.getMbtClient().getDeviceSystemStatus(deviceSystemStatusListener)
             }
         }
 
@@ -211,7 +216,7 @@ class ConnectionFragment : Fragment() {
                 addLog("please connect first")
             } else {
                 addLog("get streaming state...")
-                mainViewModel.mbtClient.getStreamingState(sensorStatusListener)
+                mainViewModel.getMbtClient().getStreamingState(sensorStatusListener)
             }
         }
     }

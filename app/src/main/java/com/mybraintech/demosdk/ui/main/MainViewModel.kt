@@ -7,7 +7,14 @@ import com.mybraintech.sdk.core.model.MbtDevice
 
 class MainViewModel : ViewModel() {
 
-    lateinit var mbtClient: MbtClient
+    private lateinit var _mbtClient: MbtClient
     var targetDevice: MbtDevice? = null
     lateinit var deviceInformation: DeviceInformation
+
+    fun setMbtClient(mbtClient: MbtClient) {
+        _mbtClient = mbtClient
+        targetDevice = mbtClient.getBleConnectionStatus().mbtDevice
+    }
+
+    fun getMbtClient(): MbtClient = _mbtClient
 }

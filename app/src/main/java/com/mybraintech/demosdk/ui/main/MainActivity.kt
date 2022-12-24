@@ -18,8 +18,7 @@ class MainActivity : AppCompatActivity() {
 
         // init view model
         mainViewModel = ViewModelProvider(this).get(MainViewModel::class.java)
-        mainViewModel.mbtClient = MbtClientManager.getMbtClient(this, EnumMBTDevice.Q_PLUS)
-        mainViewModel.targetDevice = mainViewModel.mbtClient.getBleConnectionStatus().mbtDevice
+        mainViewModel.setMbtClient(MbtClientManager.getMbtClient(this, EnumMBTDevice.Q_PLUS))
 
         if (savedInstanceState == null) {
             supportFragmentManager.beginTransaction()
