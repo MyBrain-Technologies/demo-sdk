@@ -13,13 +13,18 @@ import androidx.lifecycle.ViewModelProvider
 import com.mybraintech.demosdk.R
 import com.mybraintech.demosdk.databinding.FragmentConnectionBinding
 import com.mybraintech.demosdk.ui.main.MainViewModel
+import com.mybraintech.sdk.core.TestBench
 import com.mybraintech.sdk.core.listener.BatteryLevelListener
 import com.mybraintech.sdk.core.listener.ConnectionListener
+import com.mybraintech.sdk.core.listener.DeviceSystemStatusListener
 import com.mybraintech.sdk.core.listener.ScanResultListener
+import com.mybraintech.sdk.core.model.DeviceSystemStatus
 import com.mybraintech.sdk.core.model.MbtDevice
+import com.mybraintech.sdk.util.toJson
 import com.zhuinden.fragmentviewbindingdelegatekt.viewBinding
 import timber.log.Timber
 
+@OptIn(TestBench::class)
 @SuppressLint("MissingPermission")
 class ConnectionFragment : Fragment() {
 
@@ -96,6 +101,19 @@ class ConnectionFragment : Fragment() {
 
     }
 
+    private val deviceSystemStatusListener = object : DeviceSystemStatusListener {
+        override fun onDeviceSystemStatusFetched(deviceSystemStatus: DeviceSystemStatus) {
+            Timber.i("onDeviceSystemStatusFetched : ${deviceSystemStatus.toJson()}")
+            addLog("onDeviceSystemStatusFetched : ${deviceSystemStatus.toJson()}")
+        }
+
+        override fun onDeviceSystemStatusError(error: String) {
+            Timber.e(error)
+            addLog(error)
+        }
+
+    }
+
     companion object {
         @JvmStatic
         fun newInstance() =
@@ -160,6 +178,17 @@ class ConnectionFragment : Fragment() {
                 addLog("connect...")
                 mainViewModel.mbtClient.connect(mainViewModel.targetDevice!!, connectionListener)
             }
+        }
+
+        binding.btnHeadsetStatus.setOnClickListener {
+            it.antiDoubleClick()
+            if (mainViewModel.targetDevice == null) {
+                addLog("please connect first")
+            } else {
+                addLog("get headset status...")
+                mainViewModel.mbtClient.getDeviceSystemStatus(deviceSystemStatusListener)
+            }
+
         }
     }
 
