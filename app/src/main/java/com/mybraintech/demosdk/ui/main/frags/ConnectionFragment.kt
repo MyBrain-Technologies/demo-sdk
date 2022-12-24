@@ -14,11 +14,9 @@ import com.mybraintech.demosdk.R
 import com.mybraintech.demosdk.databinding.FragmentConnectionBinding
 import com.mybraintech.demosdk.ui.main.MainViewModel
 import com.mybraintech.sdk.core.TestBench
-import com.mybraintech.sdk.core.listener.BatteryLevelListener
-import com.mybraintech.sdk.core.listener.ConnectionListener
-import com.mybraintech.sdk.core.listener.DeviceSystemStatusListener
-import com.mybraintech.sdk.core.listener.ScanResultListener
+import com.mybraintech.sdk.core.listener.*
 import com.mybraintech.sdk.core.model.DeviceSystemStatus
+import com.mybraintech.sdk.core.model.Indus5SensorStatus
 import com.mybraintech.sdk.core.model.MbtDevice
 import com.mybraintech.sdk.util.toJson
 import com.zhuinden.fragmentviewbindingdelegatekt.viewBinding
@@ -57,7 +55,7 @@ class ConnectionFragment : Fragment() {
 
     private val connectionListener = object : ConnectionListener {
         override fun onServiceDiscovered() {
-            Timber.i( "onServiceDiscovered")
+            Timber.i("onServiceDiscovered")
         }
 
         override fun onBondingRequired(device: BluetoothDevice) {
@@ -89,16 +87,27 @@ class ConnectionFragment : Fragment() {
         }
     }
 
-    private val batteryLevelListener = object : BatteryLevelListener{
+    private val batteryLevelListener = object : BatteryLevelListener {
         override fun onBatteryLevel(float: Float) {
             Timber.i("onBatteryLevel : $float")
             addLog("onBatteryLevel : $float")
         }
 
         override fun onBatteryLevelError(error: Throwable) {
-            Timber.e(error, "onBatteryLevelError")
+            Timber.e(error)
         }
 
+    }
+
+    private val sensorStatusListener = object : SensorStatusListener {
+        override fun onSensorStatusFetched(sensorStatus: Indus5SensorStatus) {
+            Timber.i("onSensorStatusFetched : ${sensorStatus.toJson()}")
+            addLog("onSensorStatusFetched : ${sensorStatus.toJson()}")
+        }
+
+        override fun onSensorStatusError(error: String) {
+            Timber.e(error)
+        }
     }
 
     private val deviceSystemStatusListener = object : DeviceSystemStatusListener {
@@ -188,7 +197,16 @@ class ConnectionFragment : Fragment() {
                 addLog("get headset status...")
                 mainViewModel.mbtClient.getDeviceSystemStatus(deviceSystemStatusListener)
             }
+        }
 
+        binding.btnStreamingStatus.setOnClickListener {
+            it.antiDoubleClick()
+            if (mainViewModel.targetDevice == null) {
+                addLog("please connect first")
+            } else {
+                addLog("get streaming state...")
+                mainViewModel.mbtClient.getStreamingState(sensorStatusListener)
+            }
         }
     }
 
