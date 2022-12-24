@@ -167,6 +167,12 @@ class ConnectionFragment : Fragment() {
     }
 
     private fun initView() {
+        binding.btnIsConnected.setOnClickListener {
+            it.antiDoubleClick()
+            val connectionStatus = mainViewModel.mbtClient.getBleConnectionStatus()
+            addLog("connectionStatus = ${connectionStatus.isConnectionEstablished}")
+        }
+
         binding.btnStartScan.setOnClickListener {
             it.antiDoubleClick()
             addLog("startScan")

@@ -16,6 +16,14 @@
         app:layout_constraintTop_toTopOf="parent">
 
         <Button
+            android:id="@+id/btn_is_connected"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_margin="4dp"
+            android:text="Is Connected?"
+            android:textSize="12dp" />
+
+        <Button
             android:id="@+id/btn_start_scan"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
