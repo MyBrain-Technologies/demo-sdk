@@ -49,6 +49,7 @@ class ConnectionFragment : Fragment() {
 
         override fun onScanError(error: Throwable) {
             Timber.e(error)
+            addLog("onScanError" + error.message)
         }
 
     }
@@ -191,7 +192,8 @@ class ConnectionFragment : Fragment() {
                 addLog("please scan first")
             } else {
                 addLog("connect...")
-                mainViewModel.getMbtClient().connect(mainViewModel.targetDevice!!, connectionListener)
+                mainViewModel.getMbtClient()
+                    .connect(mainViewModel.targetDevice!!, connectionListener)
             }
         }
 

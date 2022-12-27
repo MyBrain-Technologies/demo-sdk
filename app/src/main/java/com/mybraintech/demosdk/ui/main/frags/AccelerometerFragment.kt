@@ -50,7 +50,7 @@ class AccelerometerFragment : Fragment() {
         }
 
         override fun onEegPacket(mbtEEGPacket: MbtEEGPacket) {
-            // do nothing
+            Timber.d("onEegPacket : ${System.currentTimeMillis() / 1000 % 1000}")
         }
 
         override fun onEegError(error: Throwable) {
