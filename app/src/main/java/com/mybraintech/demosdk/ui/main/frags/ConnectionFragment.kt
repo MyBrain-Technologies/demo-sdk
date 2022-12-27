@@ -219,6 +219,24 @@ class ConnectionFragment : Fragment() {
                 mainViewModel.getMbtClient().getStreamingState(sensorStatusListener)
             }
         }
+
+        binding.btnGoIms.setOnClickListener {
+            goIMS()
+        }
+
+    }
+
+    private fun goIMS() {
+        if (mainViewModel.getMbtClient().getBleConnectionStatus().isConnectionEstablished) {
+            addLog("switching to IMS...")
+            requireActivity().supportFragmentManager
+                .beginTransaction()
+                .replace(R.id.container, AccelerometerFragment.newInstance(), "tag_ims")
+                .addToBackStack("name_ims")
+                .commit()
+        } else {
+            addLog("please connect first")
+        }
     }
 
 }

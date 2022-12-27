@@ -4,7 +4,6 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".ui.main.frags.ConnectionFragment"
     tools:ignore="HardcodedText,SpUsage">
 
     <com.google.android.flexbox.FlexboxLayout
@@ -16,59 +15,75 @@
         app:layout_constraintTop_toTopOf="parent">
 
         <Button
-            android:id="@+id/btn_is_connected"
+            android:id="@+id/btn_is_ims_streaming"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_margin="4dp"
-            android:text="Is Connected?"
+            android:text="Is IMS Streaming?"
             android:textSize="12dp" />
 
         <Button
-            android:id="@+id/btn_start_scan"
+            android:id="@+id/btn_stop_streaming"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_margin="4dp"
-            android:text="Start Scan"
+            android:text="Stop Streaming"
             android:textSize="12dp" />
 
         <Button
-            android:id="@+id/btn_stop_scan"
+            android:id="@+id/btn_get_ims_config"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_margin="4dp"
-            android:text="Stop Scan"
+            android:text="Get Config"
             android:textSize="12dp" />
 
         <Button
-            android:id="@+id/btn_connect"
+            android:id="@+id/btn_eeg_ims_100_hz"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_margin="4dp"
-            android:text="Connect"
+            android:text="EEG + IMS 100Hz"
             android:textSize="12dp" />
 
         <Button
-            android:id="@+id/btn_disconnect"
+            android:id="@+id/btn_eeg_ims_50_hz"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_margin="4dp"
-            android:text="Disconnect"
+            android:text="EEG + IMS 50Hz"
             android:textSize="12dp" />
 
         <Button
-            android:id="@+id/btn_headset_status"
+            android:id="@+id/btn_100_hz"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_margin="4dp"
-            android:text="Headset status"
+            android:text="IMS 100 Hz"
             android:textSize="12dp" />
 
         <Button
-            android:id="@+id/btn_streaming_status"
+            android:id="@+id/btn_50_hz"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_margin="4dp"
-            android:text="Streaming status"
+            android:text="IMS 50 Hz"
+            android:textSize="12dp" />
+
+        <Button
+            android:id="@+id/btn_start_recording"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_margin="4dp"
+            android:text="Start REC"
+            android:textSize="12dp" />
+
+        <Button
+            android:id="@+id/btn_stop_recording"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_margin="4dp"
+            android:text="Stop REC"
             android:textSize="12dp" />
 
     </com.google.android.flexbox.FlexboxLayout>
@@ -97,12 +112,23 @@
         app:layout_constraintBottom_toBottomOf="parent">
 
         <Button
-            android:id="@+id/btn_go_ims"
+            android:id="@+id/btn_clear_log"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_margin="4dp"
-            android:text="Go IMS"
+            android:text="Clear Log"
             android:textSize="12dp" />
 
+        <EditText
+            android:id="@+id/edt_rec_duration"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:hint="recording timeout"
+            android:importantForAutofill="no"
+            android:inputType="number"
+            android:minWidth="100dp"
+            android:text="30000" />
+
     </com.google.android.flexbox.FlexboxLayout>
+
 </androidx.constraintlayout.widget.ConstraintLayout>
