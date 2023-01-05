@@ -11,6 +11,7 @@ import androidx.lifecycle.ViewModelProvider
 import com.mybraintech.demosdk.R
 import com.mybraintech.demosdk.databinding.FragmentAccelerometerBinding
 import com.mybraintech.demosdk.ui.main.MainViewModel
+import com.mybraintech.sdk.core.LabStreamingLayer
 import com.mybraintech.sdk.core.TestBench
 import com.mybraintech.sdk.core.listener.*
 import com.mybraintech.sdk.core.model.*
@@ -18,7 +19,7 @@ import com.zhuinden.fragmentviewbindingdelegatekt.viewBinding
 import timber.log.Timber
 import java.io.File
 
-@OptIn(TestBench::class)
+@OptIn(TestBench::class, LabStreamingLayer::class)
 class AccelerometerFragment : Fragment() {
 
     private val binding by viewBinding(FragmentAccelerometerBinding::bind)
