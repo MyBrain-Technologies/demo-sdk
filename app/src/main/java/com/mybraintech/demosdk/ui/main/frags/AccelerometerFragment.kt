@@ -50,12 +50,19 @@ class AccelerometerFragment : Fragment() {
         }
 
         override fun onEegPacket(mbtEEGPacket: MbtEEGPacket) {
-            Timber.d("onEegPacket : ${System.currentTimeMillis() / 1000 % 1000}")
+            Timber.i("onEegPacket : ${System.currentTimeMillis() / 1000 % 1000}")
         }
 
         override fun onEegError(error: Throwable) {
             Timber.e(error)
             addLog(error.message)
+        }
+
+    }
+
+    private val realtimeListener = object : EEGRealtimeListener {
+        override fun onEEGFrame(pack: EEGSignalPack) {
+//            Timber.i("onEEGFrame : index = ${pack.index} | size = [${pack.eegSignals.size}x${pack.eegSignals[0].size}]")
         }
 
     }
@@ -90,9 +97,11 @@ class AccelerometerFragment : Fragment() {
     }
 
     private val accelerometerConfigListener = object : AccelerometerConfigListener {
-        override fun onAccelerometerConfigFetched(sampleRate: Int) {
-            Timber.i("onAccelerometerConfigFetched : sampleRate = $sampleRate")
-            addLog("onAccelerometerConfigFetched : sampleRate = $sampleRate")
+        override fun onAccelerometerConfigFetched(config: AccelerometerConfig) {
+            with("onAccelerometerConfigFetched : sampleRate = ${config.sampleRate.sampleRate}") {
+                Timber.i(this)
+                addLog(this)
+            }
         }
 
         override fun onAccelerometerConfigError(error: String) {
@@ -152,6 +161,7 @@ class AccelerometerFragment : Fragment() {
         mainViewModel = ViewModelProvider(requireActivity()).get(MainViewModel::class.java)
 
         mainViewModel.getMbtClient().setEEGListener(eegListener)
+        mainViewModel.getMbtClient().setEEGRealtimeListener(realtimeListener)
         mainViewModel.getMbtClient().setAccelerometerListener(accelerometerListener)
 
         initView()

@@ -145,7 +145,9 @@ class ConnectionFragment : Fragment() {
 
     private fun addLog(line: String) {
         logBuilder.appendLine(line)
-        binding.txtLog.text = logBuilder.toString()
+        if (!isRemoving && !isDetached) {
+            binding.txtLog.text = logBuilder.toString()
+        }
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
