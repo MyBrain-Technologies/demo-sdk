@@ -199,6 +199,18 @@ class AccelerometerFragment : Fragment() {
             mainViewModel.getMbtClient().getAccelerometerConfig(accelerometerConfigListener)
         }
 
+        binding.btnEeg.setOnClickListener {
+            it.antiDoubleClick()
+            addLog("eeg only")
+            val params = StreamingParams.Builder()
+                .setEEG(true)
+                .setQualityChecker(true)
+                .setTriggerStatus(false)
+                .setAccelerometer(false)
+                .build()
+            mainViewModel.getMbtClient().startStreaming(params)
+        }
+
         binding.btn100Hz.setOnClickListener {
             it.antiDoubleClick()
             addLog("btn100Hz...")
