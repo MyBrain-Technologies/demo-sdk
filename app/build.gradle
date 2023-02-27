@@ -49,7 +49,7 @@ dependencies {
     // maven_user=<user_name_provided_by_MBT>
     // maven_password=<password_provided_by_MBT>
     // After that, please define the MBT SDK here :
-    def releaseVersion = "3.2.2.1"
+    def releaseVersion = "3.3.3"
 
     Properties properties = new Properties()
     properties.load(project.rootProject.file('local.properties').newDataInputStream())

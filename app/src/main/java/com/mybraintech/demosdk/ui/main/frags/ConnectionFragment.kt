@@ -5,10 +5,10 @@ import android.bluetooth.BluetoothDevice
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
-import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import com.mybraintech.demosdk.R
 import com.mybraintech.demosdk.databinding.FragmentConnectionBinding
@@ -75,6 +75,17 @@ class ConnectionFragment : Fragment() {
             Timber.i("onDeviceReady")
             addLog("onDeviceReady")
             mainViewModel.getMbtClient().getBatteryLevel(batteryLevelListener)
+            mainViewModel.getMbtClient()
+                .setSerialNumber("2222111111", object : SerialNumberChangedListener {
+                    override fun onSerialNumberChanged(newSerialNumber: String) {
+                        addLog("onSerialNumberChanged = $newSerialNumber")
+                    }
+
+                    override fun onSerialNumberError(errorMessage: String) {
+                        addLog("onSerialNumberError = $errorMessage")
+                    }
+
+                })
         }
 
         override fun onDeviceDisconnected() {
