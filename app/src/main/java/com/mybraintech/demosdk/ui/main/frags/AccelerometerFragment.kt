@@ -63,7 +63,7 @@ class AccelerometerFragment : Fragment() {
 
     private val realtimeListener = object : EEGRealtimeListener {
         override fun onEEGFrame(pack: EEGSignalPack) {
-//            Timber.i("onEEGFrame : index = ${pack.index} | size = [${pack.eegSignals.size}x${pack.eegSignals[0].size}]")
+            Timber.i("onEEGFrame : index = ${pack.index} | size = [${pack.eegSignals.size}x${pack.eegSignals[0].size}]")
         }
 
     }
@@ -202,10 +202,12 @@ class AccelerometerFragment : Fragment() {
         binding.btnEeg.setOnClickListener {
             it.antiDoubleClick()
             addLog("eeg only")
+            val trigger = true
+            Timber.i("trigger = $trigger")
             val params = StreamingParams.Builder()
                 .setEEG(true)
                 .setQualityChecker(true)
-                .setTriggerStatus(false)
+                .setTriggerStatus(trigger)
                 .setAccelerometer(false)
                 .build()
             mainViewModel.getMbtClient().startStreaming(params)

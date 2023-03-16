@@ -71,6 +71,22 @@
             android:text="Streaming status"
             android:textSize="12dp" />
 
+        <Button
+            android:id="@+id/btn_start_dfu_9"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_margin="4dp"
+            android:text="DFU 9"
+            android:textSize="12dp" />
+
+        <Button
+            android:id="@+id/btn_start_dfu_10"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_margin="4dp"
+            android:text="DFU 10"
+            android:textSize="12dp" />
+
     </com.google.android.flexbox.FlexboxLayout>
 
     <ScrollView
@@ -95,6 +111,14 @@
         android:layout_height="wrap_content"
         app:flexWrap="wrap"
         app:layout_constraintBottom_toBottomOf="parent">
+
+        <Button
+            android:id="@+id/btn_clear_log"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_margin="4dp"
+            android:text="Clear Log"
+            android:textSize="12dp"/>
 
         <Button
             android:id="@+id/btn_go_ims"

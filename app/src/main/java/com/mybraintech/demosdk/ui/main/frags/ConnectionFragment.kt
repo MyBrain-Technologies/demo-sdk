@@ -21,6 +21,7 @@ import com.mybraintech.sdk.core.model.MbtDevice
 import com.mybraintech.sdk.util.toJson
 import com.zhuinden.fragmentviewbindingdelegatekt.viewBinding
 import timber.log.Timber
+import java.io.InputStream
 
 @OptIn(TestBench::class)
 @SuppressLint("MissingPermission")
@@ -75,17 +76,6 @@ class ConnectionFragment : Fragment() {
             Timber.i("onDeviceReady")
             addLog("onDeviceReady")
             mainViewModel.getMbtClient().getBatteryLevel(batteryLevelListener)
-            mainViewModel.getMbtClient()
-                .setSerialNumber("2222111111", object : SerialNumberChangedListener {
-                    override fun onSerialNumberChanged(newSerialNumber: String) {
-                        addLog("onSerialNumberChanged = $newSerialNumber")
-                    }
-
-                    override fun onSerialNumberError(errorMessage: String) {
-                        addLog("onSerialNumberError = $errorMessage")
-                    }
-
-                })
         }
 
         override fun onDeviceDisconnected() {
@@ -154,8 +144,29 @@ class ConnectionFragment : Fragment() {
         )
     }
 
+    private fun setSerialNumber() {
+        mainViewModel.getMbtClient()
+            .setSerialNumber("2222111111", object : SerialNumberChangedListener {
+                override fun onSerialNumberChanged(newSerialNumber: String) {
+                    addLog("onSerialNumberChanged = $newSerialNumber")
+                }
+
+                override fun onSerialNumberError(errorMessage: String) {
+                    addLog("onSerialNumberError = $errorMessage")
+                }
+
+            })
+    }
+
     private fun addLog(line: String) {
         logBuilder.appendLine(line)
+        if (!isRemoving && !isDetached) {
+            binding.txtLog.text = logBuilder.toString()
+        }
+    }
+
+    private fun clearLog() {
+        logBuilder.clear()
         if (!isRemoving && !isDetached) {
             binding.txtLog.text = logBuilder.toString()
         }
@@ -239,6 +250,39 @@ class ConnectionFragment : Fragment() {
             goIMS()
         }
 
+        binding.btnClearLog.setOnClickListener {
+            clearLog()
+        }
+
+        binding.btnStartDfu9.setOnClickListener {
+            startDFU(resources.openRawResource(R.raw.mm_ota_melomind_q_plus_release_ads1299_0_9_0))
+        }
+
+        binding.btnStartDfu10.setOnClickListener {
+            startDFU(resources.openRawResource(R.raw.mm_ota_melomind_q_plus_release_ads1299_0_10_0))
+        }
+    }
+
+    private fun startDFU(inputStream : InputStream) {
+//        mainViewModel.getMbtClient().prepareDFU(inputStream)
+//        mainViewModel.getMbtClient().startDFU(object : DriverFirmwareUpgradeListener {
+//            override fun onDFUInitialized() {
+//                Timber.d("onDFUStarted")
+//            }
+//
+//            override fun onOTAResult(isOk: Boolean, msg: String) {
+//                Timber.d("onOTAResult : isOk = $isOk | msg = $msg")
+//            }
+//
+//            override fun onDFUError(error: String) {
+//                Timber.d("onDFUError : $error")
+//            }
+//
+//            override fun onDFUAborted() {
+//                Timber.d("onDFUAborted")
+//            }
+//
+//        })
     }
 
     private fun goIMS() {
