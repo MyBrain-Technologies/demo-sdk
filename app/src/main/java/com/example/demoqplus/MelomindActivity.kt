@@ -218,33 +218,33 @@ class MelomindActivity : AppCompatActivity(), ConnectionListener {
 
         mbtClient.setEEGListener(
             object : EEGListener {
-                override fun onEegPacket(mbtEEGPacket2: MbtEEGPacket2) {
+                override fun onEegPacket(mbtEEGPacket: MbtEEGPacket) {
                     if (mbtClient.isRecordingEnabled()) {
                         Timber.d("is recording")
                     }
 
-                    val getData = getP3P4(mbtEEGPacket2.channelsData)
+                    val getData = getP3P4(mbtEEGPacket.channelsData)
 
                     //Updating chart
                     binding.chart1.post {
                         if (counter < 2) {
                             counter++
-                            addEntry(binding.chart1, getData, mbtEEGPacket2.statusData)
+                            addEntry(binding.chart1, getData, mbtEEGPacket.statusData)
                         } else {
                             updateEntry(
                                 binding.chart1,
                                 getData,
                                 bufferedChartData,
-                                mbtEEGPacket2.statusData
+                                mbtEEGPacket.statusData
                             )
                         }
                         bufferedChartData = getData
-                        bufferedChartData.add(0, mbtEEGPacket2.statusData)
+                        bufferedChartData.add(0, mbtEEGPacket.statusData)
                     }
                     // bufferedChartData2 = af3af4Data
                     // bufferedChartData2.add(0, mbtEEGPacket2.statusData)
 
-                    updateQualityButtons(mbtEEGPacket2.qualities)
+                    updateQualityButtons(mbtEEGPacket.qualities)
                 }
 
                 override fun onEEGStatusChange(isEnabled: Boolean) {
@@ -274,7 +274,7 @@ class MelomindActivity : AppCompatActivity(), ConnectionListener {
 
         Timber.d("onBtnStartRecordingClicked")
 
-        val name = "${deviceInformation?.productName}-${getTimeNow()}.json"
+        val name = "${deviceInformation?.bleName}-${getTimeNow()}.json"
         var folder = File(Environment.getExternalStorageDirectory().toString() + "/MBT_DEMO")
         folder.mkdirs()
         if (!folder.isDirectory || !folder.canWrite()) {

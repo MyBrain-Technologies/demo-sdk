@@ -37,6 +37,7 @@ import timber.log.Timber
 import java.io.File
 import java.text.SimpleDateFormat
 import java.util.*
+import kotlin.collections.ArrayList
 
 
 @SuppressLint("MissingPermission", "SetTextI18n")
@@ -245,9 +246,9 @@ class QplusSimpleActivity : AppCompatActivity(), ConnectionListener {
                         Timber.d("is recording")
                     }
                     val getData = if (isP3P4) {
-                        getP3P4(pack.signals)
+                        getP3P4(pack.eegSignals)
                     } else {
-                        getAF3AF4(pack.signals)
+                        getAF3AF4(pack.eegSignals)
                     }
                     //Updating chart
                     binding.chart1.post {
@@ -261,36 +262,36 @@ class QplusSimpleActivity : AppCompatActivity(), ConnectionListener {
     private fun enablePacketListener() {
         mbtClient.setEEGListener(
             object : EEGListener {
-                override fun onEegPacket(mbtEEGPacket2: MbtEEGPacket2) {
+                override fun onEegPacket(mbtEEGPacket: MbtEEGPacket) {
                     if (mbtClient.isRecordingEnabled()) {
                         Timber.d("is recording")
                     }
 
                     val getData = if (isP3P4) {
-                        getP3P4(mbtEEGPacket2.channelsData)
+                        getP3P4(mbtEEGPacket.channelsData)
                     } else {
-                        getAF3AF4(mbtEEGPacket2.channelsData)
+                        getAF3AF4(mbtEEGPacket.channelsData)
                     }
                     //Updating chart
                     binding.chart1.post {
                         if (counter < 2) {
                             counter++
-                            addEntry(binding.chart1, getData, mbtEEGPacket2.statusData)
+                            addEntry(binding.chart1, getData, mbtEEGPacket.statusData)
                         } else {
                             updateEntry(
                                 binding.chart1,
                                 getData,
                                 bufferedChartData,
-                                mbtEEGPacket2.statusData
+                                mbtEEGPacket.statusData
                             )
                         }
                         bufferedChartData = getData
-                        bufferedChartData.add(0, mbtEEGPacket2.statusData)
+                        bufferedChartData.add(0, mbtEEGPacket.statusData)
                     }
                     // bufferedChartData2 = af3af4Data
                     // bufferedChartData2.add(0, mbtEEGPacket2.statusData)
 
-                    updateQualityButtons(mbtEEGPacket2.qualities)
+                    updateQualityButtons(mbtEEGPacket.qualities)
                 }
 
                 override fun onEEGStatusChange(isEnabled: Boolean) {
@@ -313,7 +314,7 @@ class QplusSimpleActivity : AppCompatActivity(), ConnectionListener {
 
         Timber.d("onBtnStartRecordingClicked")
 
-        val name = "${deviceInformation?.productName}-${getTimeNow()}.json"
+        val name = "${deviceInformation?.bleName}-${getTimeNow()}.json"
         var folder = File(Environment.getExternalStorageDirectory().toString() + "/MBT_DEMO")
         folder.mkdirs()
         if (!folder.isDirectory || !folder.canWrite()) {
@@ -500,17 +501,17 @@ class QplusSimpleActivity : AppCompatActivity(), ConnectionListener {
     }
 
     // Update graph data
-    private fun getP3P4(data: ArrayList<ArrayList<Float>>): ArrayList<ArrayList<Float>> {
+    private fun getP3P4(data: List<List<Float>>): ArrayList<ArrayList<Float>> {
         val result = ArrayList<ArrayList<Float>>()
-        result.add(data[0])
-        result.add(data[1])
+        result.add(ArrayList(data[0]))
+        result.add(ArrayList(data[1]))
         return result
     }
 
-    private fun getAF3AF4(data: ArrayList<ArrayList<Float>>): ArrayList<java.util.ArrayList<Float>> {
+    private fun getAF3AF4(data: List<List<Float>>): ArrayList<ArrayList<Float>> {
         val result = ArrayList<ArrayList<Float>>()
-        result.add(data[2])
-        result.add(data[3])
+        result.add(ArrayList(data[2]))
+        result.add(ArrayList(data[3]))
         return result
     }
 
