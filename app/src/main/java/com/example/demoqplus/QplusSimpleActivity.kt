@@ -37,7 +37,6 @@ import timber.log.Timber
 import java.io.File
 import java.text.SimpleDateFormat
 import java.util.*
-import kotlin.collections.ArrayList
 
 
 @SuppressLint("MissingPermission", "SetTextI18n")
@@ -242,13 +241,15 @@ class QplusSimpleActivity : AppCompatActivity(), ConnectionListener {
         mbtClient.setEEGRealtimeListener(
             object : EEGRealtimeListener {
                 override fun onEEGFrame(pack: EEGSignalPack) {
+                    Timber.d("onEEGFrame : size = [${pack.eegSignals.size}*${pack.eegSignals[0].size}]")
                     if (mbtClient.isRecordingEnabled()) {
                         Timber.d("is recording")
                     }
+                    val eegChannels = pack.eegSignals.rotate()
                     val getData = if (isP3P4) {
-                        getP3P4(pack.eegSignals)
+                        getP3P4(eegChannels)
                     } else {
-                        getAF3AF4(pack.eegSignals)
+                        getAF3AF4(eegChannels)
                     }
                     //Updating chart
                     binding.chart1.post {
@@ -795,4 +796,21 @@ class QplusSimpleActivity : AppCompatActivity(), ConnectionListener {
         mbtClient.disconnect()
     }
 
+    @Suppress("LiftReturnOrAssignment")
+    fun List<List<Float>>.rotate(): List<List<Float>> {
+        if (this.isNotEmpty()) {
+            val x = this.size
+            val y = this[0].size
+            val result = arrayListOf<ArrayList<Float>>()
+            for (i in 0 until y) {
+                result.add(arrayListOf())
+                for (j in 0 until x) {
+                    result[i].add(this[j][i])
+                }
+            }
+            return result
+        } else {
+            return emptyList()
+        }
+    }
 }
