@@ -13,6 +13,7 @@ import android.graphics.Color
 import android.net.Uri
 import android.os.Bundle
 import android.os.Environment
+import android.util.Log
 import android.widget.Button
 import android.widget.Toast
 import androidx.annotation.ColorInt
@@ -20,6 +21,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.content.res.AppCompatResources
 import androidx.core.app.ActivityCompat
 import androidx.core.content.FileProvider
+import com.example.demoqplus.LSL.*
 import com.example.demoqplus.databinding.ActivityQplusSimpleBinding
 import com.github.mikephil.charting.charts.LineChart
 import com.github.mikephil.charting.components.Description
@@ -73,6 +75,17 @@ class QplusSimpleActivity : AppCompatActivity(), ConnectionListener {
     private var isP3P4: Boolean = true
     private var bufferedChartData = ArrayList<ArrayList<Float>>()
 
+    //LSL
+    lateinit var streamInfo : StreamInfo
+    lateinit var streamOutlet : StreamOutlet
+    val streamName = "mbt_qp"
+    val streamType = "EEG"
+    val streamChannels = 4
+    val streamSamplingRate = 250.0
+    val streamChunkSize = 5
+    val streamFormat = ChannelFormat.float32
+
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -96,6 +109,7 @@ class QplusSimpleActivity : AppCompatActivity(), ConnectionListener {
         setBatteryLevel()
         initUI()
         initializeGraph()
+        openLslStream()
     }
 
     private fun initUI() {
@@ -237,11 +251,32 @@ class QplusSimpleActivity : AppCompatActivity(), ConnectionListener {
         )
     }
 
+    private fun closeLSL() {
+        streamOutlet.close()
+        streamInfo.destroy()
+        Timber.d("LSL stream closed and deleted.")
+    }
+
+    private fun openLslStream() {
+        val streamId = UUID.randomUUID().toString()
+
+        streamInfo = StreamInfo(streamName,streamType,streamChannels,streamSamplingRate,streamFormat,streamId)
+        streamOutlet = StreamOutlet(streamInfo)
+        Timber.d("StreamOutlet created")
+
+    }
+
+    private fun sendEEGSample(eegPacket: EEGSignalPack) {
+        val eegData = eegPacket.eegSignals
+        for (i in eegData.indices) {
+            streamOutlet.push_sample(eegData[i].toFloatArray())
+        }
+    }
+
     private fun enableRealtimeListener() {
         mbtClient.setEEGRealtimeListener(
             object : EEGRealtimeListener {
                 override fun onEEGFrame(pack: EEGSignalPack) {
-                    Timber.d("onEEGFrame : size = [${pack.eegSignals.size}*${pack.eegSignals[0].size}]")
                     if (mbtClient.isRecordingEnabled()) {
                         Timber.d("is recording")
                     }
@@ -251,6 +286,8 @@ class QplusSimpleActivity : AppCompatActivity(), ConnectionListener {
                     } else {
                         getAF3AF4(eegChannels)
                     }
+                    //Send data to LSL
+                    sendEEGSample(pack)
                     //Updating chart
                     binding.chart1.post {
                         addEntry(binding.chart1, getData, null)
@@ -787,6 +824,15 @@ class QplusSimpleActivity : AppCompatActivity(), ConnectionListener {
     override fun onConnectionError(error: Throwable) {
         Timber.e("device connection error!")
         binding.simpleConnectDevice.text = "Connect"
+    }
+
+    override fun onStop() {
+        super.onStop()
+        try {
+            closeLSL()
+        } catch (e: java.lang.Exception) {
+            Timber.e(e.toString())
+        }
     }
 
     // activity
