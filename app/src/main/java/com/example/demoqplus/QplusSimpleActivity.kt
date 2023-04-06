@@ -30,6 +30,7 @@ import com.github.mikephil.charting.data.LineData
 import com.github.mikephil.charting.data.LineDataSet
 import com.mybraintech.sdk.MbtClient
 import com.mybraintech.sdk.MbtClientManager
+import com.mybraintech.sdk.core.ResearchStudy
 import com.mybraintech.sdk.core.listener.*
 import com.mybraintech.sdk.core.model.*
 import com.mybraintech.sdk.util.toJson
@@ -39,8 +40,13 @@ import java.text.SimpleDateFormat
 import java.util.*
 
 
+@OptIn(ResearchStudy::class)
 @SuppressLint("MissingPermission", "SetTextI18n")
 class QplusSimpleActivity : AppCompatActivity(), ConnectionListener {
+
+    companion object {
+        private val MY_EEG_FILTER_MODE = EnumEEGFilterConfig.NO_FILTER
+    }
 
     private lateinit var binding: ActivityQplusSimpleBinding
 
@@ -233,8 +239,25 @@ class QplusSimpleActivity : AppCompatActivity(), ConnectionListener {
                 .setTriggerStatus(isStatusEnabled)
                 .setAccelerometer(false)
                 .setQualityChecker(true)
+                .setEEGFilterConfig(MY_EEG_FILTER_MODE)
                 .build()
         )
+    }
+
+    /**
+     * this function shows how to get current EEGFilterConfig
+     */
+    private fun getEEGFilterMode() {
+        mbtClient.getEEGFilterConfig(object : EEGFilterConfigListener{
+            override fun onEEGFilterConfig(config: EnumEEGFilterConfig) {
+                Timber.d("onEEGFilterConfig : ${config.name}")
+            }
+
+            override fun onEEGFilterConfigError(errorMsg: String) {
+                Timber.e("onEEGFilterConfigError : $errorMsg")
+            }
+
+        })
     }
 
     private fun enableRealtimeListener() {
