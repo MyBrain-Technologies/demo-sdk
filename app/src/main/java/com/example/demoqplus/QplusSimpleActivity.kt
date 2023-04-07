@@ -76,14 +76,15 @@ class QplusSimpleActivity : AppCompatActivity(), ConnectionListener {
     private var bufferedChartData = ArrayList<ArrayList<Float>>()
 
     //LSL
-    lateinit var streamInfo : StreamInfo
-    lateinit var streamOutlet : StreamOutlet
-    val streamName = "mbt_qp"
+    lateinit var streamInfo: StreamInfo
+    lateinit var streamOutlet: StreamOutlet
+    val streamName = "Q+"
     val streamType = "EEG"
     val streamChannels = 4
     val streamSamplingRate = 250.0
     val streamChunkSize = 5
     val streamFormat = ChannelFormat.float32
+    val channelNames = arrayOf("P3", "P4", "AF3", "AF4")
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -260,13 +261,28 @@ class QplusSimpleActivity : AppCompatActivity(), ConnectionListener {
     private fun openLslStream() {
         val streamId = UUID.randomUUID().toString()
 
-        streamInfo = StreamInfo(streamName,streamType,streamChannels,streamSamplingRate,streamFormat,streamId)
+        streamInfo = StreamInfo(
+            streamName,
+            streamType,
+            streamChannels,
+            streamSamplingRate,
+            streamFormat,
+            streamId
+        )
+        val channelsInfo = streamInfo.desc().append_child("channels")
+        for (chName in channelNames) {
+            val ch = channelsInfo.append_child("channel")
+            ch.append_child_value("label", chName)
+            ch.append_child_value("unit", "V")
+            ch.append_child_value("type", "EEG")
+        }
         streamOutlet = StreamOutlet(streamInfo)
         Timber.d("StreamOutlet created")
 
     }
 
     private fun sendEEGSample(eegPacket: EEGSignalPack) {
+        println("Timestamp = ${eegPacket.index}")
         val eegData = eegPacket.eegSignals
         for (i in eegData.indices) {
             streamOutlet.push_sample(eegData[i].toFloatArray())
@@ -289,6 +305,7 @@ class QplusSimpleActivity : AppCompatActivity(), ConnectionListener {
                     //Send data to LSL
                     sendEEGSample(pack)
                     //Updating chart
+
                     binding.chart1.post {
                         addEntry(binding.chart1, getData, null)
                     }
