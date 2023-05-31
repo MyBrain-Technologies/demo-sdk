@@ -13,16 +13,18 @@ import androidx.lifecycle.ViewModelProvider
 import com.mybraintech.demosdk.R
 import com.mybraintech.demosdk.databinding.FragmentConnectionBinding
 import com.mybraintech.demosdk.ui.main.MainViewModel
+import com.mybraintech.sdk.core.ResearchStudy
 import com.mybraintech.sdk.core.TestBench
 import com.mybraintech.sdk.core.listener.*
 import com.mybraintech.sdk.core.model.DeviceSystemStatus
+import com.mybraintech.sdk.core.model.EnumEEGFilterConfig
 import com.mybraintech.sdk.core.model.Indus5SensorStatus
 import com.mybraintech.sdk.core.model.MbtDevice
 import com.mybraintech.sdk.util.toJson
 import com.zhuinden.fragmentviewbindingdelegatekt.viewBinding
 import timber.log.Timber
 
-@OptIn(TestBench::class)
+@OptIn(TestBench::class, ResearchStudy::class)
 @SuppressLint("MissingPermission")
 class ConnectionFragment : Fragment() {
 
@@ -224,10 +226,34 @@ class ConnectionFragment : Fragment() {
             }
         }
 
+        initFilterModeListener()
+
         binding.btnGoIms.setOnClickListener {
             goIMS()
         }
 
+    }
+
+    private fun initFilterModeListener() {
+        binding.btnFilterMode.setOnClickListener {
+            it.antiDoubleClick()
+            if (mainViewModel.targetDevice == null) {
+                addLog("please connect first")
+            } else {
+                addLog("get filter mode...")
+                mainViewModel.getMbtClient().getEEGFilterConfig(object : EEGFilterConfigListener {
+                    override fun onEEGFilterConfig(config: EnumEEGFilterConfig) {
+                        Timber.i("onEEGFilterConfig : ${config.name}")
+                        addLog("onEEGFilterConfig : ${config.name}")
+                    }
+
+                    override fun onEEGFilterConfigError(errorMsg: String) {
+                        Timber.e(errorMsg)
+                    }
+
+                })
+            }
+        }
     }
 
     private fun goIMS() {

@@ -11,7 +11,9 @@ import androidx.lifecycle.ViewModelProvider
 import com.mybraintech.demosdk.R
 import com.mybraintech.demosdk.databinding.FragmentAccelerometerBinding
 import com.mybraintech.demosdk.ui.main.MainViewModel
+import com.mybraintech.sdk.MbtClient
 import com.mybraintech.sdk.core.LabStreamingLayer
+import com.mybraintech.sdk.core.ResearchStudy
 import com.mybraintech.sdk.core.TestBench
 import com.mybraintech.sdk.core.listener.*
 import com.mybraintech.sdk.core.model.*
@@ -19,7 +21,7 @@ import com.zhuinden.fragmentviewbindingdelegatekt.viewBinding
 import timber.log.Timber
 import java.io.File
 
-@OptIn(TestBench::class, LabStreamingLayer::class)
+@OptIn(TestBench::class, LabStreamingLayer::class, ResearchStudy::class)
 class AccelerometerFragment : Fragment() {
 
     private val binding by viewBinding(FragmentAccelerometerBinding::bind)
@@ -207,8 +209,38 @@ class AccelerometerFragment : Fragment() {
                 .setQualityChecker(true)
                 .setTriggerStatus(false)
                 .setAccelerometer(false)
+                .setEEGFilterConfig(EnumEEGFilterConfig.NO_FILTER)
                 .build()
             mainViewModel.getMbtClient().startStreaming(params)
+            getEEGFilterConfig(mainViewModel.getMbtClient())
+        }
+
+        binding.btnEeg2.setOnClickListener {
+            it.antiDoubleClick()
+            addLog("eeg only")
+            val params = StreamingParams.Builder()
+                .setEEG(true)
+                .setQualityChecker(true)
+                .setTriggerStatus(false)
+                .setAccelerometer(false)
+                .setEEGFilterConfig(EnumEEGFilterConfig.BANDSTOP)
+                .build()
+            mainViewModel.getMbtClient().startStreaming(params)
+            getEEGFilterConfig(mainViewModel.getMbtClient())
+        }
+
+        binding.btnEeg3.setOnClickListener {
+            it.antiDoubleClick()
+            addLog("eeg only")
+            val params = StreamingParams.Builder()
+                .setEEG(true)
+                .setQualityChecker(true)
+                .setTriggerStatus(false)
+                .setAccelerometer(false)
+                .setEEGFilterConfig(EnumEEGFilterConfig.BANDPASS_BANDSTOP)
+                .build()
+            mainViewModel.getMbtClient().startStreaming(params)
+            getEEGFilterConfig(mainViewModel.getMbtClient())
         }
 
         binding.btn100Hz.setOnClickListener {
@@ -269,6 +301,20 @@ class AccelerometerFragment : Fragment() {
             it.antiDoubleClick()
             clearLog()
         }
+    }
+
+    private fun getEEGFilterConfig(mbtClient: MbtClient) {
+        mbtClient.getEEGFilterConfig(object : EEGFilterConfigListener {
+            override fun onEEGFilterConfig(config: EnumEEGFilterConfig) {
+                Timber.i("onEEGFilterConfig : ${config.name}")
+                addLog("onEEGFilterConfig : ${config.name}")
+            }
+
+            override fun onEEGFilterConfigError(errorMsg: String) {
+                Timber.e(errorMsg)
+            }
+
+        })
     }
 
     private fun onStartRecClicked(btn: View) {
