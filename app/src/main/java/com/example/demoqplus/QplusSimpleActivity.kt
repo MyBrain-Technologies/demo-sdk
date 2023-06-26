@@ -14,6 +14,7 @@ import android.net.Uri
 import android.os.Bundle
 import android.os.Environment
 import android.util.Log
+import android.view.WindowManager
 import android.widget.Button
 import android.widget.Toast
 import androidx.annotation.ColorInt
@@ -32,6 +33,7 @@ import com.github.mikephil.charting.data.LineData
 import com.github.mikephil.charting.data.LineDataSet
 import com.mybraintech.sdk.MbtClient
 import com.mybraintech.sdk.MbtClientManager
+import com.mybraintech.sdk.core.ResearchStudy
 import com.mybraintech.sdk.core.listener.*
 import com.mybraintech.sdk.core.model.*
 import com.mybraintech.sdk.util.toJson
@@ -39,10 +41,16 @@ import timber.log.Timber
 import java.io.File
 import java.text.SimpleDateFormat
 import java.util.*
+import kotlin.collections.ArrayList
 
 
+@OptIn(ResearchStudy::class)
 @SuppressLint("MissingPermission", "SetTextI18n")
 class QplusSimpleActivity : AppCompatActivity(), ConnectionListener {
+
+    companion object {
+        private val MY_EEG_FILTER_MODE = EnumEEGFilterConfig.BANDPASS_BANDSTOP
+    }
 
     private lateinit var binding: ActivityQplusSimpleBinding
 
@@ -65,7 +73,6 @@ class QplusSimpleActivity : AppCompatActivity(), ConnectionListener {
 
     //EEG signals
     var eegCount = 0
-
     var channelNb = 4
     var qualityButtons = ArrayList<Button>()
 
@@ -82,13 +89,13 @@ class QplusSimpleActivity : AppCompatActivity(), ConnectionListener {
     val streamType = "EEG"
     val streamChannels = 4
     val streamSamplingRate = 250.0
-    val streamChunkSize = 5
     val streamFormat = ChannelFormat.float32
     val channelNames = arrayOf("P3", "P4", "AF3", "AF4")
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
 
         // Initialize viewbinding
         binding = ActivityQplusSimpleBinding.inflate(layoutInflater)
@@ -236,18 +243,14 @@ class QplusSimpleActivity : AppCompatActivity(), ConnectionListener {
     }
 
     private fun onBtnStartEEGClicked(isStatusEnabled: Boolean) {
-        val isPacketMode = false
-        if (isPacketMode) {
-            enablePacketListener()
-        } else {
-            enableRealtimeListener()
-        }
+        enableRealtimeListener()
 
         mbtClient.startStreaming(
             StreamingParams.Builder().setEEG(true)
                 .setTriggerStatus(isStatusEnabled)
                 .setAccelerometer(false)
                 .setQualityChecker(true)
+                .setEEGFilterConfig(MY_EEG_FILTER_MODE)
                 .build()
         )
     }
@@ -282,11 +285,38 @@ class QplusSimpleActivity : AppCompatActivity(), ConnectionListener {
     }
 
     private fun sendEEGSample(eegPacket: EEGSignalPack) {
-        println("Timestamp = ${eegPacket.index}")
         val eegData = eegPacket.eegSignals
         for (i in eegData.indices) {
-            streamOutlet.push_sample(eegData[i].toFloatArray())
+            streamOutlet.push_sample(eegData[i].toFloatArray(),LSL.local_clock())
         }
+    }
+
+    /**
+     * this function shows how to get current EEGFilterConfig
+     */
+    private fun getEEGFilterMode() {
+        mbtClient.getEEGFilterConfig(object : EEGFilterConfigListener{
+            override fun onEEGFilterConfig(config: EnumEEGFilterConfig) {
+                Timber.d("onEEGFilterConfig : ${config.name}")
+            }
+
+            override fun onEEGFilterConfigError(errorMsg: String) {
+                Timber.e("onEEGFilterConfigError : $errorMsg")
+            }
+
+        })
+    }
+
+    fun toArrayList(list: List<List<Float>>) : ArrayList<ArrayList<Float>> {
+        val arrayList = ArrayList<ArrayList<Float>>()
+        for (i in list.indices) {
+            val subArrayList = ArrayList<Float>()
+            for (j in list[i].indices) {
+                subArrayList.add(list[i][j])
+            }
+            arrayList.add(subArrayList)
+        }
+        return arrayList
     }
 
     private fun enableRealtimeListener() {
@@ -305,7 +335,6 @@ class QplusSimpleActivity : AppCompatActivity(), ConnectionListener {
                     //Send data to LSL
                     sendEEGSample(pack)
                     //Updating chart
-
                     binding.chart1.post {
                         addEntry(binding.chart1, getData, null)
                     }
