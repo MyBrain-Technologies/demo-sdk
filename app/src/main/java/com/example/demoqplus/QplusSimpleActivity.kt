@@ -151,6 +151,8 @@ class QplusSimpleActivity : AppCompatActivity(), ConnectionListener {
                             ).show()
 
                             isScanning = false
+
+                            binding.simpleConnectDevice.callOnClick()
                         }
 
                         override fun onOtherDevices(otherDevices: List<BluetoothDevice>) {
@@ -305,18 +307,6 @@ class QplusSimpleActivity : AppCompatActivity(), ConnectionListener {
             }
 
         })
-    }
-
-    fun toArrayList(list: List<List<Float>>) : ArrayList<ArrayList<Float>> {
-        val arrayList = ArrayList<ArrayList<Float>>()
-        for (i in list.indices) {
-            val subArrayList = ArrayList<Float>()
-            for (j in list[i].indices) {
-                subArrayList.add(list[i][j])
-            }
-            arrayList.add(subArrayList)
-        }
-        return arrayList
     }
 
     private fun enableRealtimeListener() {

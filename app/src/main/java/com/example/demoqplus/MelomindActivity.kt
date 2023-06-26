@@ -13,6 +13,7 @@ import android.graphics.Color
 import android.net.Uri
 import android.os.Bundle
 import android.os.Environment
+import android.view.WindowManager
 import android.widget.Button
 import android.widget.Toast
 import androidx.annotation.ColorInt
@@ -72,8 +73,19 @@ class MelomindActivity : AppCompatActivity(), ConnectionListener {
     private var counter: Int = 0
     private var bufferedChartData = ArrayList<ArrayList<Float>>()
 
+    //LSL
+    lateinit var streamInfo: LSL.StreamInfo
+    lateinit var streamOutlet: LSL.StreamOutlet
+    val streamName = "Melomind"
+    val streamType = "EEG"
+    val streamChannels = 2
+    val streamSamplingRate = 250.0
+    val streamFormat = LSL.ChannelFormat.float32
+    val channelNames = arrayOf("P3", "P4")
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
 
         // Initialize viewbinding
         binding = ActivityMelomindBinding.inflate(layoutInflater)
@@ -96,6 +108,16 @@ class MelomindActivity : AppCompatActivity(), ConnectionListener {
         setBatteryLevel()
         initUI()
         initializeGraph()
+        openLslStream()
+    }
+
+    override fun onStop() {
+        super.onStop()
+        try {
+            closeLSL()
+        } catch (e: java.lang.Exception) {
+            Timber.e(e.toString())
+        }
     }
 
     private fun initUI() {
@@ -129,6 +151,8 @@ class MelomindActivity : AppCompatActivity(), ConnectionListener {
                             ).show()
 
                             isScanning = false
+
+                            binding.simpleConnectDevice.callOnClick()
                         }
 
                         override fun onOtherDevices(otherDevices: List<BluetoothDevice>) {
@@ -206,13 +230,49 @@ class MelomindActivity : AppCompatActivity(), ConnectionListener {
         qualityButtons.add(binding.P4)
     }
 
+    private fun closeLSL() {
+        streamOutlet.close()
+        streamInfo.destroy()
+        Timber.d("LSL stream closed and deleted.")
+    }
+
+    private fun openLslStream() {
+        val streamId = UUID.randomUUID().toString()
+
+        streamInfo = LSL.StreamInfo(
+            streamName,
+            streamType,
+            streamChannels,
+            streamSamplingRate,
+            streamFormat,
+            streamId
+        )
+        val channelsInfo = streamInfo.desc().append_child("channels")
+        for (chName in channelNames) {
+            val ch = channelsInfo.append_child("channel")
+            ch.append_child_value("label", chName)
+            ch.append_child_value("unit", "V")
+            ch.append_child_value("type", "EEG")
+        }
+        streamOutlet = LSL.StreamOutlet(streamInfo)
+        Timber.d("StreamOutlet created")
+
+    }
+
+    private fun sendEEGSample(eegPacket: EEGSignalPack) {
+        val eegData = eegPacket.eegSignals
+        for (i in eegData.indices) {
+            streamOutlet.push_sample(eegData[i].toFloatArray(),LSL.local_clock())
+        }
+    }
+
     private fun onBtnStartEEGClicked(isStatusEnabled: Boolean) {
         mbtClient.setEEGRealtimeListener(
             object : EEGRealtimeListener {
                 override fun onEEGFrame(pack: EEGSignalPack) {
-//                    TODO("Not yet implemented")
+                    //Send data to LSL
+                    sendEEGSample(pack)
                 }
-
             }
         )
 
