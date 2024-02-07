@@ -71,7 +71,7 @@ class QplusSimpleActivity : AppCompatActivity(), ConnectionListener {
     var eegCount = 0
 
     var channelNb = 4
-    var qualityButtons = ArrayList<Button>()
+    private var qualityButtons = ArrayList<Button>()
 
     // line  chart
     private val TWO_SECONDS = 500f

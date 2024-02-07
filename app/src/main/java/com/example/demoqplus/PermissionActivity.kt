@@ -6,6 +6,7 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
+import android.view.View
 import android.widget.Button
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
@@ -44,6 +45,8 @@ class PermissionActivity : AppCompatActivity() {
             val intent = Intent(this@PermissionActivity, MelomindActivity::class.java)
             startActivity(intent)
         }
+
+        initCheckButtons()
     }
 
     override fun onRequestPermissionsResult(
@@ -134,6 +137,13 @@ class PermissionActivity : AppCompatActivity() {
                     Manifest.permission.BLUETOOTH,
                 )
             }
+        }
+    }
+
+    private fun initCheckButtons() {
+        findViewById<View>(R.id.btnCheckLocation).setOnClickListener {
+            val location = SettingHelper(this).checkLocationPermission()
+            Toast.makeText(this, "location permission is $location", Toast.LENGTH_SHORT).show()
         }
     }
 

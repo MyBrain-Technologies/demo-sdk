@@ -27,4 +27,10 @@
         android:layout_margin="16dp"
         android:text="Q PLUS" />
 
+    <Button
+        android:text="Location Permission"
+        android:layout_width="wrap_content"
+        android:id="@+id/btnCheckLocation"
+        android:layout_height="wrap_content"/>
+
 </LinearLayout>
