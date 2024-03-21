@@ -211,7 +211,7 @@ class QPlusActivity : AppCompatActivity(), ConnectionListener {
 
     private fun onBtnStartEEGClicked() {
         val listener = object : EEGListener {
-            override fun onEegPacket(mbtEEGPacket2: MbtEEGPacket2) {
+            override fun onEegPacket(mbtEEGPacket2: MbtEEGPacket) {
                 val getData = if (isP3P4) {
                     getP3P4(mbtEEGPacket2.channelsData)
                 } else {
