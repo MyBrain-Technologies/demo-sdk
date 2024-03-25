@@ -1,6 +1,8 @@
 package com.mybraintech.demosdk
 
 import android.Manifest
+import android.app.AlertDialog
+import android.bluetooth.BluetoothManager
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
@@ -10,15 +12,15 @@ import android.widget.Button
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
+import com.mybraintech.sdk.core.model.EnumMBTDevice
 import timber.log.Timber
 
 
 class PermissionActivity : AppCompatActivity() {
 
-    // Declare the permissions you want to grant
-    // Don't forget to add permissions into your AndroidManifest
-    val REQUEST_PERMISSION_CODE: Int = 1
-    var PERMISSION_ALL: Int = 1
+    companion object {
+        private const val REQUEST_PERMISSION_CODE: Int = 1
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -28,20 +30,35 @@ class PermissionActivity : AppCompatActivity() {
     }
 
     private fun initView() {
-        val btnRequestPermission = findViewById<Button>(R.id.button_storage_permission)
-        btnRequestPermission.setOnClickListener {
-            // Request permissions for read and write external storage
-            checkPermissions()
+        findViewById<Button>(R.id.button_storage_permission).setOnClickListener {
+            requestPermissions()
         }
 
         findViewById<Button>(R.id.button_go_q_plus).setOnClickListener {
-            // Go to next activity
-            val intent = Intent(this@PermissionActivity, QPlusActivity::class.java)
-            startActivity(intent)
+            goAcquisition(EnumMBTDevice.Q_PLUS)
         }
 
         findViewById<Button>(R.id.button_go_melomind).setOnClickListener {
-            Toast.makeText(applicationContext, "under construction", Toast.LENGTH_SHORT).show()
+            goAcquisition(EnumMBTDevice.MELOMIND)
+        }
+
+        findViewById<Button>(R.id.button_go_hyperion).setOnClickListener {
+            goAcquisition(EnumMBTDevice.HYPERION)
+        }
+    }
+
+    private fun goAcquisition(mbtDevice: EnumMBTDevice) {
+        val bluetoothManager =
+            applicationContext.getSystemService(Context.BLUETOOTH_SERVICE) as BluetoothManager
+        val bluetoothAdapter = bluetoothManager.adapter
+        val isBluetoothEnabled = bluetoothAdapter?.isEnabled
+
+        if (isBluetoothEnabled == true) {
+            val intent = Intent(applicationContext, AcquisitionActivity::class.java)
+            intent.putExtra(AcquisitionActivity.KEY_DEVICE_TYPE, mbtDevice.toString())
+            startActivity(intent)
+        } else {
+            alertDialog("Please enable Bluetooth !")
         }
     }
 
@@ -50,84 +67,65 @@ class PermissionActivity : AppCompatActivity() {
         grantResults: IntArray
     ) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-
-        when (requestCode) {
-            REQUEST_PERMISSION_CODE -> {
-                if (grantResults.isNotEmpty()) {
-                    val writePermission: Boolean =
-                        grantResults[0] == PackageManager.PERMISSION_GRANTED
-                    val readPermission: Boolean =
-                        grantResults[1] == PackageManager.PERMISSION_GRANTED
-
-                    if (writePermission && readPermission) {
-                        // Granted, do something here...
-                        Timber.d("get permissions!")
-                    } else {
-                        // Denied, do something here...
-                        Timber.d("permissions denied!")
-
-                    }
-                } else {
-                    // Denied, do something here...
-                    Timber.d("permissions denied!")
-                }
+        Timber.i("Requested Permissions = $permissions")
+        Timber.i("Grant Results = $grantResults")
+        var allGranted = true
+        for (i in permissions.indices) {
+            if (grantResults[i] == PackageManager.PERMISSION_GRANTED) {
+                Timber.i("Permission ${permissions[i]} is granted.")
+            } else {
+                Timber.w("Permission ${permissions[i]} is NOT granted.")
+                allGranted = false
             }
-            else -> {
-                Timber.d("requestCode problem, please check its value")
-            }
+        }
+        if (!allGranted) {
+            alertDialog("Please grant all permissions !")
         }
     }
 
-    private fun checkPermissions() {
-        // Check if the permission has been granted
+    private fun alertDialog(message: String) {
+        AlertDialog.Builder(this)
+            .setMessage(message)
+            .setNeutralButton("OK", null)
+            .create()
+            .show()
+    }
+
+    private fun requestPermissions() {
         if (isAllPermissionsGranted(this, getRequiredPermissions())) {
-            // All permissions are granted, do something...
-            Timber.i("W/R external permissions have been granted")
-            Toast.makeText(
-                this@PermissionActivity,
-                "permissions have been already granted",
-                Toast.LENGTH_SHORT
-            ).show()
+            val text = "Permissions are granted"
+            Timber.i(text)
+            Toast.makeText(applicationContext, text, Toast.LENGTH_SHORT)
+                .show()
         } else {
-            // Ask user for authorization
-            Timber.i("W/R external permissions are not granted, ask for user")
-            ActivityCompat.requestPermissions(this, getRequiredPermissions(), PERMISSION_ALL)
+            Timber.i("Request permissions...")
+            ActivityCompat.requestPermissions(
+                this,
+                getRequiredPermissions(),
+                REQUEST_PERMISSION_CODE
+            )
         }
     }
 
-    // Helper function to check is all of permissions granted
     private fun isAllPermissionsGranted(
         context: Context,
         requiredPermissions: Array<String>
-    ): Boolean =
-        requiredPermissions.all {
+    ): Boolean {
+        return requiredPermissions.all {
             ActivityCompat.checkSelfPermission(context, it) == PackageManager.PERMISSION_GRANTED
         }
+    }
 
-    private fun getRequiredPermissions(): Array<String> {
+    private fun getBluetoothPermissions(): Array<String> {
         return when {
             Build.VERSION.SDK_INT >= Build.VERSION_CODES.S -> {
                 arrayOf(
-                    Manifest.permission.WRITE_EXTERNAL_STORAGE,
-                    Manifest.permission.READ_EXTERNAL_STORAGE,
                     Manifest.permission.BLUETOOTH_CONNECT,
                     Manifest.permission.BLUETOOTH_SCAN
                 )
             }
-            Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q -> {
-                arrayOf(
-                    Manifest.permission.WRITE_EXTERNAL_STORAGE,
-                    Manifest.permission.READ_EXTERNAL_STORAGE,
-                    Manifest.permission.ACCESS_FINE_LOCATION,
-                    Manifest.permission.BLUETOOTH_ADMIN,
-                    Manifest.permission.BLUETOOTH,
-                )
-            }
             else -> {
                 arrayOf(
-                    Manifest.permission.WRITE_EXTERNAL_STORAGE,
-                    Manifest.permission.READ_EXTERNAL_STORAGE,
-                    Manifest.permission.ACCESS_COARSE_LOCATION,
                     Manifest.permission.BLUETOOTH_ADMIN,
                     Manifest.permission.BLUETOOTH,
                 )
@@ -135,4 +133,16 @@ class PermissionActivity : AppCompatActivity() {
         }
     }
 
+    private fun getLocationPermission(): String {
+        val locationPermission = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            Manifest.permission.ACCESS_FINE_LOCATION
+        } else {
+            Manifest.permission.ACCESS_COARSE_LOCATION
+        }
+        return locationPermission
+    }
+
+    private fun getRequiredPermissions(): Array<String> {
+        return getBluetoothPermissions().plus(getLocationPermission())
+    }
 }
