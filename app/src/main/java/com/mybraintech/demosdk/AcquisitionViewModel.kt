@@ -27,6 +27,7 @@ class AcquisitionViewModel : ViewModel() {
     private val mUpdateLiveData: MutableLiveData<String> = MutableLiveData<String>()
     private val mDeviceInfoLiveData: MutableLiveData<String> = MutableLiveData<String>()
     private val eegListener: EEGListener by lazy { createEEGListener() }
+    private val eegRealtimeListener: EEGRealtimeListener by lazy { createEEGRealtimeListener() }
     private val scanResultListener: ScanResultListener by lazy { createScanResultListener() }
 
     private val connectionListener: ConnectionListener by lazy { createConnectionListener() }
@@ -186,6 +187,7 @@ class AcquisitionViewModel : ViewModel() {
             if (!mbtClient.isEEGEnabled()) {
                 Timber.d("startStreaming...")
                 mbtClient.setEEGListener(eegListener)
+                mbtClient.setEEGRealtimeListener(eegRealtimeListener)
                 mbtClient.startStreaming(
                     StreamingParams.Builder()
                         .setEEG(true)
@@ -336,6 +338,18 @@ class AcquisitionViewModel : ViewModel() {
                     mChart2LiveData.postValue(ch34)
                 }
                 mQualityLiveData.postValue(mbtEEGPacket.qualities)
+            }
+        }
+    }
+
+    private fun createEEGRealtimeListener(): EEGRealtimeListener {
+        return object : EEGRealtimeListener {
+            override fun onEEGFrame(pack: EEGSignalPack) {
+                if (pack.eegSignals.isNotEmpty()) {
+                    if (pack.eegSignals[0].isNotEmpty()) {
+                        Timber.v("onEEGFrame : ${pack.eegSignals.size} channel(s) x ${pack.eegSignals[0].size} sample(s)")
+                    }
+                }
             }
         }
     }
