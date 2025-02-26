@@ -15,7 +15,7 @@ import androidx.core.app.ActivityCompat
 import com.mybraintech.sdk.core.model.EnumMBTDevice
 import timber.log.Timber
 
-
+//
 class PermissionActivity : AppCompatActivity() {
 
     companion object {
