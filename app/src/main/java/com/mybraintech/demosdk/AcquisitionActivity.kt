@@ -1,10 +1,13 @@
 package com.mybraintech.demosdk
 
+import android.Manifest
 import android.annotation.SuppressLint
 import android.app.AlertDialog
 import android.graphics.Color
 import android.os.Bundle
+import android.view.View
 import android.widget.Toast
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.annotation.ColorInt
 import androidx.appcompat.app.AppCompatActivity
@@ -17,6 +20,7 @@ import com.github.mikephil.charting.data.LineData
 import com.github.mikephil.charting.data.LineDataSet
 import com.mybraintech.demosdk.databinding.ActivityAcquisitionBinding
 import com.mybraintech.sdk.core.ResearchStudy
+import com.mybraintech.sdk.core.acquisition.EEGRecordedDatas
 import com.mybraintech.sdk.core.listener.*
 import com.mybraintech.sdk.core.model.*
 import timber.log.Timber
@@ -51,6 +55,9 @@ class AcquisitionActivity : AppCompatActivity() {
      */
     private var bufferedDataChart2 = ArrayList<ArrayList<Float>>()
 
+    //classic bluetooth adapter
+
+
     @Suppress("DEPRECATION")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -60,13 +67,71 @@ class AcquisitionActivity : AppCompatActivity() {
         setContentView(view)
 
         val deviceType = getDeviceType(intent.getStringExtra(KEY_DEVICE_TYPE))
-        if (deviceType == EnumMBTDevice.MELOMIND || deviceType == EnumMBTDevice.Q_PLUS || deviceType == EnumMBTDevice.HYPERION) {
+        if (deviceType == EnumMBTDevice.MELOMIND || deviceType == EnumMBTDevice.Q_PLUS || deviceType == EnumMBTDevice.HYPERION || deviceType == EnumMBTDevice.XON) {
             viewModel.setupMbtSdk(applicationContext, deviceType)
-            initView()
+            initView(deviceType)
         } else {
             showNotSupportedDialog(deviceType)
         }
+
+        //bluetooth audio
+
+        // Request necessary permissions
+
+
+//        requestPermissionLauncher.launch(
+//            arrayOf(
+//                Manifest.permission.BLUETOOTH,
+//                Manifest.permission.BLUETOOTH_ADMIN,
+//                Manifest.permission.BLUETOOTH_SCAN,
+//                Manifest.permission.BLUETOOTH_CONNECT,
+//                Manifest.permission.ACCESS_FINE_LOCATION
+//            )
+//        )
+        //bluetooth library
+        // Request necessary permissions
+        val requestPermissionLauncher = registerForActivityResult(
+            ActivityResultContracts.RequestMultiplePermissions()
+        ) { permissions ->
+            val allGranted = permissions.entries.all { it.value }
+            if (allGranted) {
+            } else {
+                Toast.makeText(this, "Permissions required", Toast.LENGTH_SHORT).show()
+            }
+        }
+
+        requestPermissionLauncher.launch(
+            arrayOf(
+                Manifest.permission.BLUETOOTH_ADMIN,
+                Manifest.permission.BLUETOOTH_SCAN,
+                Manifest.permission.BLUETOOTH_CONNECT,
+                Manifest.permission.ACCESS_FINE_LOCATION
+            )
+        )
     }
+
+
+    override fun onStart() {
+        super.onStart()
+
+    }
+
+    override fun onStop() {
+        super.onStop()
+
+    }
+
+
+    override fun onDestroy() {
+        super.onDestroy()
+        try {
+
+            viewModel.onStopScan()
+        } catch (ex: Exception) {
+            ex.printStackTrace()
+        }
+    }
+    //end bluetooth
 
     private fun getDeviceType(requestedType: String?): EnumMBTDevice? {
         if (requestedType == null) {
@@ -92,9 +157,37 @@ class AcquisitionActivity : AppCompatActivity() {
         finish()
     }
 
-    private fun initView() {
+    private fun initView(deviceType: EnumMBTDevice) {
         initListeners()
         initializeGraph()
+        innitText(deviceType)
+    }
+
+    private fun innitText(deviceType: EnumMBTDevice) {
+        when (deviceType) {
+            EnumMBTDevice.XON -> {
+                title = "XON"
+                binding.btnFilter.visibility = View.GONE
+                binding.btnStopRecord.visibility = View.GONE
+                binding.btnStartRecord.visibility = View.GONE
+            }
+
+            EnumMBTDevice.MELOMIND -> {
+                title = "Melomind"
+            }
+
+            EnumMBTDevice.Q_PLUS -> {
+                title = "Q Plus"
+            }
+
+            EnumMBTDevice.HYPERION -> {
+                title = "Hyperion"
+            }
+
+            else -> {
+                title = "NONAME"
+            }
+        }
     }
 
     private fun initListeners() {
@@ -104,20 +197,81 @@ class AcquisitionActivity : AppCompatActivity() {
 
         viewModel.getDeviceInfoLiveData().observe(this) { text ->
             binding.txtDeviceInfo.text = text
+
+
+        }
+        viewModel.getAudioDeviceInfoLiveData().observe(this) { text ->
+            binding.txtDeviceAudioInfo.text = text
+
+
+        }
+
+        viewModel.mDeviceAudioNameLiveData.observe(this) { audioName ->
+            if (audioName != null) {
+            }
+
         }
 
         viewModel.getScanStateLiveData().observe(this) { scanState ->
             binding.btnScan.text = scanState
         }
+
+        viewModel.getScanAudioStateLiveData().observe(this) { scanState ->
+            binding.btnScanAudio.text = scanState
+        }
         binding.btnScan.setOnClickListener {
             viewModel.actionScanButton()
         }
+
+        binding.btnConnectAudio.setOnClickListener {
+            viewModel.actionConnectAudioButton()
+        }
+
+        binding.btnDisconnectAudio.setOnClickListener {
+            viewModel.actionDisConnectAudioButton()
+        }
+
+        binding.btnScanClassic.setOnClickListener {
+            try {
+
+//                val audioSwitch = AudioSwitch(applicationContext)
+//
+//                audioSwitch.start { audioDevices, selectedDevice ->
+//                    audioSwitch.selectDevice(audioDevices.get(0))
+//                    TNLog.d("AcquisitionActivity", "btnScanClassic audioDevices:${audioDevices.get(0).name} selectedDevices:$audioDevices")
+//                }
+//                viewModel.testCompputeStatistic()
+//                startBleScan()
+
+//                val bluetoothKit = BluetoothKit()
+//                bluetoothKit.enable()
+//                val device = bluetoothKit.getDeviceByName("MM1B20796.")
+//                TNLog.d("AcquisitionActivity", "btnScanClassic bluetoothKit device:$device")
+//                if (device != null) {
+//                    bluetoothKit.connect(device)
+//                }
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+
+            TNLog.d("AcquisitionActivity", "btnScanClassic called:")
+
+        }
+
 
         viewModel.getConnectionStateLiveDate().observe(this) { connectionState ->
             binding.btnConnect.text = connectionState
         }
         binding.btnConnect.setOnClickListener {
             viewModel.actionConnectButton()
+        }
+
+        binding.btnScanAudio.setOnClickListener {
+            viewModel.actionScanAudioButton()
+        }
+
+        binding.btnStopAudio.setOnClickListener {
+            viewModel.actionScanAudioButton()
         }
 
         viewModel.getFilterLiveData().observe(this) { filterMode ->
@@ -133,8 +287,10 @@ class AcquisitionActivity : AppCompatActivity() {
         binding.btnBattery.setOnClickListener { viewModel.getBatteryLevel() }
 
         binding.btnStartRecord.setOnClickListener {
+            val outPutFile = createOutputFile(binding.edtPrefix.text.toString())
+            TNLog.d("AcquisitionActivity", "btnStartRecord outPutFile:" + outPutFile.absolutePath)
             viewModel.startRecord(
-                createOutputFile(binding.edtPrefix.text.toString()), createRecordingListener()
+                outPutFile, createRecordingListener()
             )
         }
 
@@ -192,6 +348,7 @@ class AcquisitionActivity : AppCompatActivity() {
             updateEntry(binding.chart1, bufferedDataChart1, ch12)
             bufferedDataChart1 = ch12
         }
+
 
         viewModel.getChart2LiveData().observe(this) { ch34 ->
             updateEntry(binding.chart2, bufferedDataChart2, ch34)
@@ -346,9 +503,12 @@ class AcquisitionActivity : AppCompatActivity() {
                 ).show()
             }
 
-            override fun onRecordingSaved(outputFile: File) {
+            override fun onRecordingSaved(outputFile: File, data: EEGRecordedDatas) {
                 EEGFileProvider.shareFile(outputFile, this@AcquisitionActivity)
             }
         }
     }
+    //bluetooth
+
+
 }

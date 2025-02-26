@@ -11,6 +11,29 @@ buildscript {
 
 allprojects {
     addRepos(repositories)
+    Properties properties = new Properties()
+    properties.load(project.rootProject.file('local.properties').newDataInputStream())
+    def maven_user = properties.getProperty('maven_user')
+    def maven_password = properties.getProperty('maven_password')
+    repositories {
+        google()
+        jcenter()
+        maven{
+            url = "https://package.mybraintech.com/repository/maven-2-releases/"
+            credentials {
+                username $maven_user
+                password $maven_password
+            }
+        }
+        maven { url "https://jitpack.io" }
+        maven{
+            url 'https://package.mybraintech.com/repository/maven-public/'
+            credentials {
+                username "$maven_user"
+                password "$maven_password"
+            }
+        }
+    }
 }
 
 task clean(type: Delete) {

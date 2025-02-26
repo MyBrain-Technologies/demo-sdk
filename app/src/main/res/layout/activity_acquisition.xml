@@ -22,6 +22,36 @@
             android:backgroundTint="@color/button_scan"
             android:text="Scan" />
 
+
+        <Button
+            android:id="@+id/btn_scan_audio"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:visibility="gone"
+            android:backgroundTint="@color/button_scan"
+            android:text="Scan Audio" />
+
+        <Button
+            android:id="@+id/btn_stop_audio"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:visibility="gone"
+            android:layout_marginTop="8dp"
+            android:backgroundTint="@color/button_scan"
+            android:text="Stop Scan Audio" />
+
+        <Button
+            android:id="@+id/btn_scan_classic"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:visibility="gone"
+            android:layout_marginTop="8dp"
+            android:backgroundTint="@color/button_scan"
+            android:text="ScanNativeClassic" />
+
+
+
         <TextView
             android:id="@+id/txt_device_info"
             android:layout_width="match_parent"
@@ -30,6 +60,16 @@
             android:gravity="center"
             android:hint="Device name" />
 
+        <TextView
+            android:id="@+id/txt_device_audio_info"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:visibility="gone"
+            android:layout_marginTop="4dp"
+            android:gravity="center"
+            android:hint="Device audio name" />
+
+
         <Button
             android:id="@+id/btn_connect"
             android:layout_width="match_parent"
@@ -37,6 +77,24 @@
             android:layout_marginTop="4dp"
             android:backgroundTint="@color/bluetooth_enable"
             android:text="connect" />
+
+        <Button
+            android:id="@+id/btn_connect_audio"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:visibility="gone"
+            android:layout_marginTop="4dp"
+            android:backgroundTint="@color/bluetooth_enable"
+            android:text="connect Audio" />
+
+        <Button
+            android:id="@+id/btn_disconnect_audio"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:visibility="gone"
+            android:layout_marginTop="4dp"
+            android:backgroundTint="@color/bluetooth_enable"
+            android:text="disconnect Audio" />
 
         <com.google.android.flexbox.FlexboxLayout
             android:layout_width="match_parent"

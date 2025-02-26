@@ -45,6 +45,9 @@ class PermissionActivity : AppCompatActivity() {
         findViewById<Button>(R.id.button_go_hyperion).setOnClickListener {
             goAcquisition(EnumMBTDevice.HYPERION)
         }
+        findViewById<Button>(R.id.button_go_x_xon).setOnClickListener {
+            goAcquisition(EnumMBTDevice.XON)
+        }
     }
 
     private fun goAcquisition(mbtDevice: EnumMBTDevice) {
@@ -57,6 +60,7 @@ class PermissionActivity : AppCompatActivity() {
             val intent = Intent(applicationContext, AcquisitionActivity::class.java)
             intent.putExtra(AcquisitionActivity.KEY_DEVICE_TYPE, mbtDevice.toString())
             startActivity(intent)
+//            finish()
         } else {
             alertDialog("Please enable Bluetooth !")
         }

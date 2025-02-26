@@ -28,6 +28,15 @@
         android:layout_margin="16dp"
         android:text="Q PLUS" />
 
+
+    <Button
+        android:id="@+id/button_go_x_xon"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_margin="16dp"
+        android:text="XON" />
+
+
     <Button
         android:id="@+id/button_go_hyperion"
         android:layout_width="match_parent"
